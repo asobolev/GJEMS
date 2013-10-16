@@ -1,0 +1,3 @@
+ -f9,f15,1,0,10.0  
+-s/home/ajay/Downloads/Lm/diamVCEucDistA.out 
+/home/ajay/Dropbox/GinjangSim/swcFiles/HB060602_3ptSoma.swc

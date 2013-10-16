@@ -1,0 +1,126 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+  <title>Input Panel</title>
+</head>
+<body>
+<font size="+2"> Input Panel</font><br>
+<br>
+Input Panel allows you to select and add one or more input neuron
+file(s) to be analyzed.<br>
+- A single input neuron<br>
+- Multiple input neurons as shown the figure below<br>
+- A whole directory that has a valid set of reconstruction files.<br>
+<br>
+Click on the Add button to select files or directory containing files
+from your local disks via a
+file chooser dialog box. <br>
+The selected files are shown in the text area.
+Selected files can be removed using the 'Remove' button. <br>
+'Remove All' button removes all the files from the text area.<br>
+<br>
+<br>
+<img src="Input1.JPG"><br>
+<p>For a standard morphological functional analysis, it is sufficient
+to select files in the Group1 window. As you can see from the figure
+above. <br>
+</p>
+<p>However, if you are doing a stat_test then you should check the
+Stat_tests check box and select Group2 files also. Please see the <a
+ href="statest.htm">how to do stat test manual</a><br>
+</p>
+<br>
+<font size="+2"> Input File Format</font><br>
+<br>
+Supported formats include:<br>
+<br>
+<table border="1" width="75%">
+  <tbody>
+    <tr>
+      <td width="19%"><font size="+1">SWC Format</font></td>
+      <td width="81%"># Amaral to SWC conversion from L-Measure. R.
+Scorcioni: rscorcio@gmu.edu<br>
+# Original fileName:C:\\cells\\ca1\\Amaral\\C8076E.txt<br>
+#<br>
+1 1 -12 -25.7308 5.19231 4.1729 -1<br>
+2 10 0 0 0 0.5 1<br>
+3 2 -13 -32.5 2 0.4 2<br>
+4 2 -14 -43 5 0.4 3<br>
+5 2 -11.5 -50.5 9 0.2 4</td>
+    </tr>
+    <tr>
+      <td width="19%"><font size="+1">Neurolucida Format</font></td>
+      <td width="81%">; V3 text file written for MicroBrightField
+products.<br>
+(Sections S1 "Section 1" 15 15 0<br>
+S2 "Section 2" 0 30 0<br>
+S3 "Section 4a" -55 25 0<br>
+S4 "Section 3a" -30 25 0<br>
+S5 "Section 5" -80 25 0<br>
+) ; End of Sections
+      <p>("CellBody"<br>
+(Color Red)<br>
+(CellBody)<br>
+( 21.84 -19.47 -10.75 0.22 S2) ; 1, 1<br>
+( 20.25 -18.17 -10.75 0.22 S2) ; 1, 2</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="19%"><font size="+1">Amaral Format</font></td>
+      <td width="81%">No. points 1722 No. trees 10<br>
+Text File sent from PDP-11<br>
+      <p></p>
+      <p> Point Type Tag X Y Z Thick Name Attachment</p>
+      <p></p>
+1 MTO 0 -4.0 -21.0 7.0 4.3 da1 ------ 0<br>
+2 CP 0 -4.0 -25.5 7.0 4.0<br>
+3 CP 0 -1.0 -35.0 6.5 2.7<br>
+4 CP 0 -.5 -40.5 8.0 2.4</td>
+    </tr>
+    <tr>
+      <td width="19%"><font size="+1">Burke Format</font></td>
+      <td width="81%">&nbsp;</td>
+    </tr>
+    <tr>
+      <td width="19%"><font size="+1">Claiborne Format</font></td>
+      <td width="81%">/* <br>
+DIG version 5.19 3-28-89 Rocky Nevin <br>
+Comments: Cell went in well. All branches accounted for. In on 11-13-90.<br>
+*/ <br>
+1 S -0.79 1.83 1.47 5.86<br>
+2 S -2.65 3.63 2.78 9.91<br>
+3 S -3.71 5.88 2.28 13.52<br>
+4 S -0.79 9.71 2.78 10.36<br>
+5 S 0.79 12.19 -0.23 8.11<br>
+6 S 2.38 14.44 1.84 7.21<br>
+7 P 3.18 16.92 1.54 5.86</td>
+    </tr>
+    <tr>
+      <td width="19%"><font size="+1">Eutectic Format</font></td>
+      <td width="81%">No. points 583<br>
+No. trees 6<br>
+Text CTMZ0791.GE1, Mudpuppy, HRP in eyecup 15 minutes.
+      <p> Point Type Tag X Y Z Thick Name Attachment</p>
+      <p> 1 SOS 0 .0 -2.0 .0 .1 ------<br>
+2 SCP 0 .0 -4.0 .0 .1<br>
+3 SCP 0 2.0 -5.5 .0 .1<br>
+4 SCP 0 3.5 -7.0 .0 .1<br>
+5 SCP 0 5.5 -8.5 .5 .1<br>
+6 SCP 0 8.5 -9.0 .5 .1</p>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">Amira Format<br>
+      </td>
+      <td style="vertical-align: top; font-family: Times New Roman;">
+      <pre># AmiraMesh ASCII 1.0<br># Created by WriteNeuronToAM -  2007-05-09 17:46:36 BST <br><br>define Lines 245 <br>define Vertices 188 <br><br>Parameters {<br>    ContentType "HxLineSet"<br>}<br><br>Vertices { float[3] Coordinates } = @1<br>Vertices { float Data } = @2<br>Lines { int LineIdx } = @3<br><br>@1 #  188 xyz coordinates<br>30.49623842616 -87.78503774352 -41<br>32.47941327644 -86.62928021488 -42<br>34.12111431144 -85.47352268624 -43<br><br>...<br><br>@2 # 188 width values<br>0.815<br>0.815<br>0.69<br><br>...<br><br>@3 # 245 line segements<br>0 1 2 3 4 5 6 7 8 9 10 11 12 -1 <br>12 13 -1 <br>13 14 15 16 -1 <br><br>...<br></pre>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<a href="overview.htm" title="lm_list"><b>Back </b></a>
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>Function: Partition_Asymmetry</title>
+<LINK REL=StyleSheet HREF="helpPageStyle.css" TYPE="text/css" MEDIA=screen>
+<script type="text/javascript" src="commonText.js"></script>
+</head>
+
+<body>
+
+<div id="mainBody">
+	<div id="functionNameHolder">
+	<h2><u><span id="functionName">Partition_Asymmetry</span></u>
+	</h3>
+	</div>
+	<div id="functionPicHolder" style="padding-bottom: 5px;"><img id="functionPic" alt="Soma_Surface"
+	src="fun_fig5.jpg" border="1" width="200px;"></div>
+
+<div id="functionDefHolder">
+
+<span id="functionDef" style="text-align: left;"> This is computed only on bifurcation. If n1 is the number of tips on the left and n2 on the right. Asymmetry return abs(n1-n2)/(n1+n2-2). </span>
+<br>
+<div class="formula" style="height: 70px; width: 180px;">
+	
+	Formula :
+	
+	<span class="varibale">
+	|n1
+	</span>
+	<span class="operator">
+	-
+	</span>
+	<span class="varibale">
+	n2|
+	</span>
+	
+	<div style="width: 20px; position:relative; left: 60px; top: 3px; text-align: center;">
+	<hr width="105px" /></div>
+	<div style="position: relative; left: 62px;">
+	<span class="varibale">
+	(n1
+	</span>
+	<span class="operator">
+	+
+	</span>
+	<span class="varibale">
+	n2
+	</span>
+	<span class="operator">
+	-
+	</span>
+	<span class="varibale">
+	n3)
+	</span>
+	</div>
+</div>
+<br>
+</div>
+<br>
+<div id="sec-type1">
+Function Output Type : Numeric
+</div>
+<br>
+<div id="sec-type1">
+Calculated : At Bifurcation
+</div>
+
+<br>
+
+<div id="sec-type1">
+<a href="#" onclick="window.open('commandLineUsage.HTM','popup','width=550,height=500,scrollbars=no,resizable=no,toolbar=no,directories=no,location=no,menubar=no,status=no,left=500,top=200'); return false">Command Line Usage Function : "-f27, 0, 0, 10.0"</a>
+</div>
+
+<br>
+
+<div id="sec-type1">
+Output:
+</div>
+<div>
+<table width="75%" border="1">
+	<tbody>
+		<tr>
+			<td width="16%">Metric</td>
+			<td width="12%">Total_Sum</td>
+			<td width="18%">#Compartments <br>
+			(considered)</td>
+			<td width="17%">#Compartments<br>
+			(discarded)</td>
+			<td width="11%">Minimum</td>
+			<td width="10%">Average</td>
+			<td width="11%">Maximum</td>
+			<td width="5%">S.D.</td>
+			
+		</tr>
+		<tr>
+			<td width="16%" height="29">Partition_Asymmetry</td>
+			<td width="12%" height="29">61</td>
+			<td width="18%" height="29">102</td>
+			<td width="17%" height="29">(1452)</td>
+			<td width="11%" height="29">0</td>
+			<td width="10%" height="29">0.6</td>
+			<td width="11%" height="29">1</td>
+			<td width="5%" height="29">0.44377</td>
+			
+		</tr>
+	</tbody>
+</table>
+*All units are ratios
+</div>
+
+<br>
+<div id="sec-type1">
+Output Interpretation :
+</div>
+
+<div id="sec-type2">
+<p>Asymmetry is: |n1-n2|/(n1+n2 -2)<br>
+                           i.e. n1=3 (red points)<br>
+                           n2=1(azure point)<br>
+                           A=|3-1|/(3+1-2)=1<br>
+
+</p>
+<p>Total_Sum = 61 gives Total_Sum, Minimum = 0 gives minimum, Maximum = 1 gives maximum for given input neuron</p>
+</div>
+
+
+<div id="sec-type1">
+<!-- Related Functions : --> 
+</div>
+<div id="usageLinks2">
+<script type="text/javascript">getRel(28);</script>
+</div>
+
+
+<div id="sec-type1">
+<!-- Examples of Distribution Plots : NA -->
+</div>
+<br>
+<!-- 
+<div>
+<a href="#" id >Command Line Usage</a>
+<br>
+<a href="#">GUI Usage</a>
+<br>
+<a href="#">Command Line Usage</a>
+<br>
+<br>
+</div>  -->
+
+<div id="sec-type1">
+References :
+</div>
+<div id="usageLinks">
+<script type="text/javascript">getRef();</script>
+
+</div>
+
+<img alt="" src="noteSymbol.jpg">
+<div id="note" style="position: relative; top: -27px; left: 40px">This is computed only on bifurcation.
+</div>
+
+<p></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<!-- img src=Soma_Surface.gif--></div>
+</div>
+</body>
+</html>
+

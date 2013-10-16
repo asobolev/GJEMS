@@ -1,0 +1,159 @@
+<html>
+
+<head>
+
+<title>Untitled Document</title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+</head>
+
+
+
+
+
+<font color="#FFFFFF"></font> 
+
+<p><font color="#660033"><b>Statistical Analysis on two groups of neurons</b></font></p>
+
+<p>Lmeasure does statistical analysis on two groups of neurons on given metrics 
+
+  (e.g. Diameter, EucDistance, surface area etc.). Two sample student's T test 
+
+  and non parametric Wilcoxon Rank Sum Test are the two available tests. </p>
+
+<p><b><font color="#660033">Steps</font></b></p>
+
+<p>To perform statistical test on two groups of neurons one should follow the 
+
+  following steps:</p>
+
+<p>1. In the function panel, Select the checkbox &quot;Stat_Tests&quot; just beside the list window. This will change 
+
+  the display area on the right to table window with 6 columns namely &quot;function_name&quot;, 
+
+  &quot;Sum&quot;,&quot;Min&quot;,&quot;Avg&quot;,&quot;Max&quot;. 
+
+<br>2. Select the desired checkbox to perform 
+
+  statistical test on that particular column (say Average) of the selected metric 
+
+  (say Surface). 
+  <br>3. Click the &quot;Add&quot; button to add it to the table window or just double click 
+
+  it.</p>
+
+<p><img src="SF_2.jpg"></p>
+
+<p><font color="#00FF00">Fig. 1: Showing how to select different metrics from 
+
+  the list window by selecting the Stat_Tests checkbox. In this example 6 metrics 
+
+  are selected for the statistical analysis. </font></p>
+
+<p><font color="#000000">4. Go to the Input panel and select the &quot;Stat_tests&quot; checkbox. 
+By doing this, Group2 window will be activated. 
+<br>5. Click on &quot;Add-&gt;&quot; 
+
+  buttons of the Group1 and Group2 respectively to add neuron files to the Group1 
+
+  and Group2 windows. The 'Remove' and 'RemoveAll' buttons will remove the selected 
+
+  files from the respective windows. 
+<br>6. Choose the stat test to be performed.
+
+	By default &quot;wilcoxon test&quot; is selected 
+
+  with no corrections. But you can choose the desired correction and test by selecting 
+
+  from the radio buttons and checkboxes. </font></p>
+
+<p><font color="#000000">User can input single individual 
+
+  neurons or a groups of neurons (directory) in the two groups. In the below example 
+
+  a directory of neurons is given as the input.</font></p>
+
+<p><img src="SI_1.jpg"></p>
+
+<p><font color="#FF0000">Fig 2: In this example Group1 is given the SWC 
+
+  directory (consists of 3 neurons) and Group2 is also given the SWC directory 
+
+  (consists of 3 neurons). A two group stat test is performed on these two groups 
+
+  of neurons to see if there are any significant differences between the two groups 
+
+  w.r.t the selected morphometrics that are chosen in the function panel.</font></p>
+
+<p>7. Go to Output Panel. This panel is optional. 
+
+  All the checkbox options that are listed in this panel are not relevant for 
+
+  stat tests. However, the user can give the output file name in this panel by clicking 
+
+  on &quot;Output File&gt;&quot; button. A file chooser window helps the user 
+
+  to choose the output file. The output is saved in this file.</p>
+
+<p><img src="SO_1.jpg"></p>
+
+<p><font color="#FF0000">Fig 3. In this example the output file is specified so 
+
+  that the output of the stattest is saved in the desired location.</font></p>
+
+<p>8. Select the Go Panel and click the 'Go' button. The 
+
+  output is displayed in the display area. For each metric selected in the Function 
+
+  Panel the P value and correction values are displayed under the heading of the 
+
+  type of test chosen. A textual message like &quot;Wilcoxon results on Group1 
+
+  and Group2 datasets on Sum metric of N_branch function&quot; explains how the 
+
+  P value is obtained. </p>
+
+<p><img src="SG_1.jpg"></p>
+
+<p><b><font color="#660033">Warning Message</font></b></p>
+
+Sometimes you may see the below pop up window, which indicates that there are some missing compartments in the file.
+<p><img src="errorPopup.JPG"></p>
+
+<p><b><font color="#660033">Important Notes</font></b></p>
+
+<p>When executing locally, for the stat tests, the tool creates a temporary folder 
+
+  on your local machine. For example if you have installed the tool in C:\Lmeasure 
+
+  then it creates a temporary folders like C:\Lmeasure\1117742980344\dir1 and 
+
+  C:\Lmeasure\1117742980344\dir2 this folder is a randomly generated number which 
+
+  is unique for every execution. After the output is displayed the folders are 
+
+  automatically deleted by the tool itself. </p>
+
+<p>If the user doesn't select any output file in the output panel, then the output 
+
+  is saved by default in &quot;Lmout.txt&quot;. For e.g. if the current directory 
+
+  is C:\Lmeasure then the output is saved in C:\Lmeasure\Lmout.txt. Along with 
+
+  Lmout.txt other files Lmin.txt (input file) and err.txt (error file) are also 
+
+  created in the same location. </p>
+
+<p>If the output displayed in the Go panel display window is not clear. One can 
+
+  transfer the output file to Excel spread sheet where the column headings and 
+
+  values are clearly shown.</p>
+
+<p><a href="lm_list.htm" title="lm_list"><b>Back </b></a></p>
+
+</body>
+
+</html>
+

@@ -1,0 +1,67 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+	<head>
+		<title>Command Line Usage</title>
+		<LINK REL=StyleSheet HREF="helpPageStyle.css" TYPE="text/css" MEDIA=screen>
+	</head>
+
+	<body style="border: medium;">
+		<div>
+		
+		
+		<div>
+		<h2><u>Interpretation of Function Flags</u></h2>
+		</div>
+		
+		
+		
+		<div id="sec-type1">
+		Generalization:  
+		</div>
+		
+		<div style="position: relative; top: -19px; left: 120px; width: 400; text-align: justify;">
+		-<div style="position: absolute; top: 0px; left: 5px; background-color: red;width: 20px; text-align: center;">f</div>
+		<div style="position: absolute; top: 0px; left: 25px;background-color: green;width: 20px;text-align: center;">x</div>
+		<div style="position: absolute; top: 0px; left: 45px;background-color: yellow;width: 20px;text-align: center;">,a</div>
+		<div style="position: absolute; top: 0px; left: 65px;background-color: pink;width: 20px;text-align: center;">,b</div>
+		<div style="position: absolute; top: 0px; left: 85px;background-color: brown;width: 20px;text-align: center;">,v</div> 
+		<div style="position: absolute; top: 0px; left: 160px;width: 20px;text-align: center;">where.......</div>
+		
+		<br>
+		<br>
+		<b><u style="background-color: red;">"- f"</u></b> is flag to denote that a function is selected from the function list that you can see in that function panel.
+		<br><br>
+		<b><u style="background-color: red;">"- f</u><u style="background-color: green;">x"</u></b>, here x is the function number.
+		<br><br>
+		 <b><u style="background-color: yellow;">"a"</u></b> Refers to average. If it is selected the value is 1 else 0
+		 <br><br>
+		 <b><u style="background-color: pink;">"b"</u></b> Refers to bins. If results are calculated on "No of Bins" its 0, else if on  "Width of bin" its 1.
+		 <br><br>
+		 <b><u style="background-color: brown;">"v"</u></b> Refers to value of "b".
+		 
+		</div></div>
+		
+		<div id="sec-type1">
+		Examples:  
+		</div>
+		
+		<div style="position: relative; top: -19px; left: 100px;">
+		- f 0, 0, 0, 10.0
+		<br>
+		Computes Somasurface with No. of bins as 10.
+		<br>
+		- f 1, 1, 0, 10.0
+		<br>
+		Computes N_stems, averaged with No of bins as 10.
+		<br>
+		- f 4, 0, 1, 5
+		<br>
+		Computes N_tips with width of bins as 10.
+		<br>
+		</div>
+		
+		<div align="center" style="position: relative; top: -10px;"><a href="javascript: self.close()">CLOSE</a></div>
+		
+	</body>
+
+</html>
