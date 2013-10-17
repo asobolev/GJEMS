@@ -1,5 +1,6 @@
 import neuron as nrn
-import os
+import os #TODO: use subprocess package
+import platform
 # import matplotlib.pyplot as plt
 # import numpy as npy
 
@@ -7,7 +8,9 @@ import os
 
 class LMIO:
     
-    LMPath = '../Lm/'
+    (bit,linkage) = platform.architecture()
+    LMPath = '../Lm'+bit[:2]+'/'
+    
     functionRef = ['Soma_Surface',
                    'N_stems',
                    'N_bifs',
@@ -52,39 +55,137 @@ class LMIO:
                    'Hausdorff',
                    'Helix',
                    'Fractal_Dim']
-
-
+                   
+    rawData = []
+    measure1BinCentres = []
+    measure1BinCounts = []
+    measure2BinAverages = []
+    measure2BinStdDevs = []
+    minumum = None
+    maximum = None
+    average = None
+    CompartmentsConsidered = None
+    ComparmentsDiscarded = None
+    TotalSum = None
+    StdDev = None
+    outputFormat = None
+    
     line1 = ""
     line2 = ""
     line3 = ""
 
+    LMInputFName = ""
+    LMOutputFName = ""
+    
+    rawDataOutputFlag = False
+
+    #*******************************************************************************************************************
+    
+    def resetOutputData(self):
+      
+	self.rawData = []
+	self.measure1BinCentres = []
+	self.measure1BinCounts = []
+	self.measure2BinAverages = []
+	self.measure2BinStdDevs = []
+	self.minumum = None
+	self.maximum = None
+	self.average = None
+	self.CompartmentsConsidered = None
+	self.ComparmentsDiscarded = None
+	self.TotalSum = None
+	self.StdDev = None
+	self.outputFormat = None
+	
+    #*******************************************************************************************************************
+
     def __init__(self, morphFile):
 
-        self.line3 = morphFile
+        self.rawDataOutputFlag = False
+        
+        self.resetOutputData()
+        
+        self.line1 = ""
+	self.line2 = ""
+	self.line3 = morphFile
+	
+	self.LMInputFName = ""
+	self.LMOutputFName = ""
+	
+    #*******************************************************************************************************************
         
     def writeLMIn(self,line1,line2,line3):
 	
-	LMInputFName = '../tmp/LMInput'
-	LMIn = open(LMInputFName,'w')
+	self.LMInputFName = '../tmp/LMInput.txt'
+	LMIn = open(self.LMInputFName,'w')
         LMIn.write(line1+'\n'+line2+'\n'+line3)
         LMIn.close()
-        return LMInputFName
-      
-    def runLM(self,LMInputFName):
+        
+    #*******************************************************************************************************************
+        
+    def runLM(self, LMInputFName):
 	
-	os.system(''+self.LMPath+'')
+	dump = os.system('./'+self.LMPath+'lmeasure '+LMInputFName)
+	
+    #*******************************************************************************************************************
+	
+    def readOutput(self, LMOutputFName):
+      
+	LMOutputFile = open(LMOutputFName, 'r')
+	
+	if self.rawDataOutputFlag:
+	  
+	    pass	#TODO
+	    
+	if self.outputFormat == 1:
+	  
+	    pass	#TODO
+	      
+	elif self.outputFormat ==2:
+	  
+	    tempStr = LMOutputFile.readline()
+	    tempWords = tempStr.split('\t')
+	    tempWords = tempWords[2:len(tempWords)-1]
+	    self.measure1BinCentres = [float(x) for x in tempWords]
+	    
+	    tempStr = LMOutputFile.readline()
+	    tempWords = tempStr.split('\t')
+	    tempWords = tempWords[2:len(tempWords)-1]
+	    self.measure1BinCounts = [float(x) for x in tempWords]
+	
+	elif self.outputFormat == 3:
+	  
+	    pass	#TODO
+	  
+	elif self.outputFormat == 4:
+	  
+	    pass	#TODO
+	
+	
+	LMOutputFile.close()
 
+    #*******************************************************************************************************************
+    
     def getMeasureDistribution(self, measure, average=False, nBins=10, Filter=False):
 
-        self.line1 = '-f' + str(self.functionRef.index(measure)) + ',' + str(int(average)) + ',0,' + str(nBins)
-
-        self.line2 = '-s../tmp/LMOutput'
+        self.line1 = '-f' + str(self.functionRef.index(measure)) +','+'f' + str(self.functionRef.index(measure)) +',' + str(int(average)) + ',0,' + str(nBins)
+	
+	self.LMOutputFName = '../tmp/LMOutput.txt'
+        self.line2 = '-s'+self.LMOutputFName
         
-        LMInputFName = writeLMIn(self.line1,self.line2,self.line3)
+        self.writeLMIn(self.line1,self.line2,self.line3)
      
+	self.runLM(self.LMInputFName)
+	
+	self.outputFormat = 2
+	self.readOutput(self.LMOutputFName)
+	
+	return([self.measure1BinCentres,self.measure1BinCounts])
+	
+    #*******************************************************************************************************************
 
 
-
+#***********************************************************************************************************************
 
 
 class BasicMorph:
@@ -105,8 +206,6 @@ class BasicMorph:
         ptr = nrn.h.SectionRef()
         nrn.h.pop_section()
         return ptr
-
-    #*******************************************************************************************************************
 
     #*******************************************************************************************************************
 
@@ -150,5 +249,7 @@ class BasicMorph:
         self.rootPtr = self.getRootPtr()
 
         self.getTipPtrs(self.rootPtr)
+        
+        
 
     #*******************************************************************************************************************

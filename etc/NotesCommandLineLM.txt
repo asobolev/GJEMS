@@ -43,13 +43,10 @@ Types of Outputs:
    output: "<Input File>\t<Metric>\t<Total_Sum><#Compartments (considered)>\t<#Compartments(discarded)>\t<Minimum>\t<Average>\t<Maximum>\t<S.D.>"
 
 2. if fx==fy : histogram of measure specified in  fx with bins as specified by b,v. 
-   if a==0: output: "<Input File>\t<measure> Distribution:<measure>\t<tab separated histogram bin centers>\n<measure>\t<tab separated histogram bin counts>"
-   if a==1: output: "<Input File>\t<measure> Distribution:<measure>\t<tab separated histogram bin centers>\n<measure>\t<tab separated histogram bin average>\nStdDev\t<tab separated histogram bin standard deviations>"
+   if a==0: output: "<Input File>\t<measure> Distribution:<measure>\t<tab separated histogram bin centers>\n\t<measure>\t<tab separated histogram bin counts>"
    
-
 3. if fx!=fy : Scatter plot of measure specified in fx vs measure specified in fy. NOTE: Average option(a) on line 1 of input file must be 1.
-   if a==0: output: "<Input File>\t<measure1>VS<measure2>:<measure1>\t<tab separated bin centers of measure1>\n<measure2>\t<tab separated bin sums of measure2>"
-   if a==1: output: "<Input File>\t<measure1>VS<measure2>:<measure1>\t<tab separated bin centers of measure1>\n<measure2>\t<tab separated bin averages of measure2>\nStdDev\t<tab separated bin standard deviations of measure2>"
+   if a==1: output: "<Input File>\t<measure1>VS<measure2>:<measure1>\t<tab separated bin centers of measure1>\n<measure2>\t<tab separated bin averages of measure2>\n StdDev\t<tab separated bin standard deviations of measure2>"
  
 4. if -R option is given, the raw data is first printed in the file, one per line and then the standard "<Input File>...." is printed.
 
