@@ -1,7 +1,7 @@
-import neuron as nrn
 import matplotlib.pyplot as plt
 import numpy as npy
-
+from morphImport import MorphImport
+import neuron as nrn
 
 def showPlot():
 
@@ -63,24 +63,24 @@ class VoltageRecord:
 
 class SpikeRecord:
 
-  nrnSpVec = nrn.h.Vector()
-  spVec=[]
+    nrnSpVec = nrn.h.Vector()
+    spVec=[]
 
-  def __init__(self,  seg, vThresh):
-    nrnAPC = nrn.h.APCount(seg) #TODO check if this works and modify if required
-    nrnAPC.thresh = vThresh
-    nrnAPC.record(self.nrnSpVec)
+    def __init__(self,  seg, vThresh):
+        nrnAPC = nrn.h.APCount(seg) #TODO check if this works and modify if required
+        nrnAPC.thresh = vThresh
+        nrnAPC.record(self.nrnSpVec)
 
 
-  def toPython(self):
+    def toPython(self):
 
-    self.spVec = npy.zeros([int(self.nrnSpVec.size()),1])
-    self.nrnSpVec.to_python(self.spVec)
+        self.spVec = npy.zeros([int(self.nrnSpVec.size()),1])
+        self.nrnSpVec.to_python(self.spVec)
 
 #***********************************************************************************************************************
 
 
-class BasicSim:
+class BasicSim(MorphImport):
 
     cmDefault = 1
     RaDefault = 100
@@ -88,59 +88,13 @@ class BasicSim:
     RmDefault = 30e3
     e_pasDefault = -65
 
-    rootPtr = None
-    nTips = 0
-    tipPtrs = []
-    cell = None
-    totalSections = 0
-    allsec = []
-    nrnT = nrn.h.Vector()
-
-    #*******************************************************************************************************************
-
-    def getPtr(self, sec):
-
-        sec.push()
-        ptr = nrn.h.SectionRef()
-        nrn.h.pop_section()
-        return ptr
-
-    #*******************************************************************************************************************
-
-    def getTipPtrs(self, presentPtr):
-
-        self.totalSections += 1
-        self.allsec.append(presentPtr.sec)
-
-        if presentPtr.nchild() == 0:
-
-            self.nTips += 1
-            self.tipPtrs.append(presentPtr)
-            return
-
-        else:
-            for childId in range(int(presentPtr.nchild())):
-                childPtr = self.getPtr(presentPtr.child[childId])
-                self.getTipPtrs(childPtr)
-            return
-
-  #*********************************************************************************************************************
-
     def __init__(self, morphFile, dt=0.025, tstop=1000):
 
-        nrn.h.xopen('../etc/import3D_batch.hoc')
-        self.cell = nrn.h.mkcell(morphFile)
+        MorphImport.__init__(self, morphFile=morphFile)
+
         nrn.h.dt = dt
         self.tStop = tstop
         self.nrnT.record(nrn.h._ref_t)
-
-        tempPtr = nrn.h.SectionRef()
-        tempPtr.root().sec.push()
-        self.rootPtr = nrn.h.SectionRef()
-        nrn.h.pop_section()
-
-        self.getTipPtrs(self.rootPtr)
-
 
         #set default intrinsic and passive section parameters.
         for sec in self.allsec:
@@ -154,6 +108,7 @@ class BasicSim:
             sec.g_pas = 1/self.RmDefault
 
     #*******************************************************************************************************************
+
 
     def setUniformPas(self , e_pas , g_pas):
 
