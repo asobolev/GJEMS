@@ -29,7 +29,7 @@ extern double hoc_Exp();
  
 #define t _nt->_t
 #define dt _nt->_dt
-#define regionIndex _p[0]
+#define index _p[0]
 #define v _p[1]
 #define _g _p[2]
  
@@ -86,7 +86,7 @@ extern int nrn_get_mechtype();
  "6.2.0",
 "regionInd",
  0,
- "regionIndex_regionInd",
+ "index_regionInd",
  0,
  0,
  0};
@@ -126,7 +126,6 @@ static _modl_cleanup(){ _match_recurse=1;}
 static void initmodel(double* _p, Datum* _ppvar, Datum* _thread, _NrnThread* _nt) {
   int _i; double _save;{
  {
-   regionIndex = 4.0 ;
    }
 
 }
