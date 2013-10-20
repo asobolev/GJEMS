@@ -1,14 +1,14 @@
 NEURON { 
         SUFFIX regionInd    
-        RANGE regionIndex
+        RANGE index
 } 
 
 ASSIGNED { 
-        regionIndex
+        index
 } 
 
 INITIAL { 
-        regionIndex=4
+        index=4
 } 
 
 BREAKPOINT { }     

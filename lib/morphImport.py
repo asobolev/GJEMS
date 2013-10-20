@@ -10,6 +10,8 @@ class MorphImport:
     totalSections = 0
     allsec = []
     nrnT = nrn.h.Vector()
+    regionMarkSecs = None
+    branchPointSec = None
 
     #*******************************************************************************************************************
 
@@ -50,16 +52,55 @@ class MorphImport:
             return
 
     #*******************************************************************************************************************
+    
+    def setRegionIndex(self, subtreeIndex, secPtr):
+	
+	secPtr.sec().regionInd.index = subtreeIndex
+	
+	if secPtr.nchild() == 0:
+	  
+	    return 
+	  
+	else:
+	  
+	    for childId in range(int(secPtr.nchild())):
+		
+		childPtr = self.getPtr(secPtr.child[childId])
+		self.setRegionIndex(subtreeIndex, childPtr)
+		
+	    return  
+
+    
+    #*******************************************************************************************************************
 
     def initRegionIndices(self,marksFile):
 
         marksFle = open(marksFile, 'r')
-        tempStr = marksFle.readline()
-        marksFle.close()
+        tempStr = '#'
+        startChar = tempStr[0]
+        while (startChar == '#') or (startChar == '\n'):
+	  tempStr = marksFle.readline()
+	  startChar = tempStr[0]
+	
+	tempStr = tempStr.rstrip('\n')
+	marksFle.close()
+        tempWords = tempStr.split('\t')
+        branchPointMark = tempWords[0]
+        regionMarks = tempWords[1:4]
+        self.regionMarkSecs = [0]*3
+        regionMarksDone = 0
+        
+        for sec in self.allsec:
+	    secName = sec.name()
+	    if secName == branchPointMark:
+	      self.branchPointSec = sec
+	    elif (secName in regionMarks) and (regionMarksDone<3):
+	      self.regionMarkSecs[regionMarks.index(secName)] = sec
+	
+	for sec in self.regionMarkSecs:
+	    self.setRegionIndex(self.regionMarkSecs.index(sec)+1, self.getPtr(sec))
 
-        regionMarks = tempStr.split('\t')
-
-
+	
     #*******************************************************************************************************************
 
     def __init__(self, morphFile):
@@ -68,11 +109,15 @@ class MorphImport:
         self.cell = nrn.h.mkcell(morphFile)
         nrn.load_mechanisms('../etc')
 
-        for sec in self.allsec:
-            sec.insert('regionInd')
-
         self.rootPtr = self.getRootPtr()
 
         self.getTipPtrs(self.rootPtr)
+        
+        for sec in self.allsec:
+            sec.insert('regionInd')
+
+        
+        
+        self.initRegionIndices(morphFile.rstrip('.swc')+'.marks')
 
     #*******************************************************************************************************************
