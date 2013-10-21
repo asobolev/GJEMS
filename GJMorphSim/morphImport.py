@@ -15,6 +15,7 @@ class MorphImport:
     branchPointSec = None
     packagePrefix = pkgutil.get_loader("GJMorphSim").filename + '/'
 
+
     #*******************************************************************************************************************
 
     def getPtr(self, sec):
@@ -54,6 +55,26 @@ class MorphImport:
             return
 
     #*******************************************************************************************************************
+    
+    def setRegionIndex(self, subtreeIndex, secPtr):
+	
+	secPtr.sec().regionInd.index = subtreeIndex
+	
+	if secPtr.nchild() == 0:
+	  
+	    return 
+	  
+	else:
+	  
+	    for childId in range(int(secPtr.nchild())):
+		
+		childPtr = self.getPtr(secPtr.child[childId])
+		self.setRegionIndex(subtreeIndex, childPtr)
+		
+	    return  
+
+    
+    #*******************************************************************************************************************
 
     def setRegionIndex(self, subtreeIndex, secPtr):
 
@@ -77,6 +98,7 @@ class MorphImport:
     def initRegionIndices(self,marksFile):
 
         marksFle = open(marksFile, 'r')
+
 
         #skip commented lines
         tempStr = '#'
@@ -104,17 +126,27 @@ class MorphImport:
         for sec in self.regionMarkSecs:
             self.setRegionIndex(self.regionMarkSecs.index(sec)+1, self.getPtr(sec))
 
+
     #*******************************************************************************************************************
 
     def __init__(self, morphFile):
 
         nrn.h.xopen(self.packagePrefix+'etc/import3D_batch.hoc')
         self.cell = nrn.h.mkcell(morphFile)
+
         nrn.load_mechanisms(self.packagePrefix+'etc')
+
 
         self.rootPtr = self.getRootPtr()
 
         self.getTipPtrs(self.rootPtr)
+        
+        for sec in self.allsec:
+            sec.insert('regionInd')
+
+        
+        
+        self.initRegionIndices(morphFile.rstrip('.swc')+'.marks')
 
         for sec in self.allsec:
             sec.insert('regionInd')
