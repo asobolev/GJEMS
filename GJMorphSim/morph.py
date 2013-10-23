@@ -199,7 +199,7 @@ class LMIO:
 
 class BasicMorph(MorphImport):
 
-    swcFileName = None
+
 
     #*******************************************************************************************************************
 
@@ -207,6 +207,6 @@ class BasicMorph(MorphImport):
 
         MorphImport.__init__(self, morphFile=morphFile)
 
-        self.swcFileName = morphFile
+
 
     #*******************************************************************************************************************

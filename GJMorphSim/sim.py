@@ -3,6 +3,7 @@ import numpy as npy
 from morphImport import MorphImport
 import neuron as nrn
 
+
 def showPlot():
 
     plt.show(block=True)
@@ -71,7 +72,6 @@ class SpikeRecord:
         nrnAPC.thresh = vThresh
         nrnAPC.record(self.nrnSpVec)
 
-
     def toPython(self):
 
         self.spVec = npy.zeros([int(self.nrnSpVec.size()),1])
@@ -101,11 +101,11 @@ class BasicSim(MorphImport):
 
             sec.cm = self.cmDefault
             sec.Ra = self.RaDefault
-            sec.nseg=self.nsegDefault
+            sec.nseg = self.nsegDefault
 
             sec.insert('pas')
             sec.e_pas = self.e_pasDefault
-            sec.g_pas = 1/self.RmDefault
+            sec.g_pas = 1 / self.RmDefault
 
     #*******************************************************************************************************************
 
@@ -118,7 +118,7 @@ class BasicSim(MorphImport):
 
     #*******************************************************************************************************************
 
-    def setSimProps(self, dt=0.025 , tstop=1000):
+    def setSimProps(self, dt=0.025, tstop=1000):
 
         nrn.h.dt = dt
         self.tStop = tstop
@@ -197,7 +197,7 @@ class BasicSim(MorphImport):
 
     #*******************************************************************************************************************
 
-    def initAndRun(self,reset_V = -65):
+    def initAndRun(self, reset_V=-65):
 
         nrn.h.finitialize(reset_V)
         nrn.init()
@@ -207,7 +207,7 @@ class BasicSim(MorphImport):
 
     def getTimeVec(self):
 
-        tVec= [0]*int(self.nrnT.size())
+        tVec = [0] * int(self.nrnT.size())
         self.nrnT.to_python(tVec)
 
         return tVec

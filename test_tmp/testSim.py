@@ -1,6 +1,6 @@
 from GJMorphSim.sim import *
 
-testMorphFile = 'swcFiles/HB060602_3ptSoma.swc'
+testMorphFile = 'swcFiles/HB060602_3ptSoma_subTrees/HB060602_3ptSoma_db.swc'
 
 testSim = BasicSim(morphFile=testMorphFile)
 testSim.setSimProps(dt=0.025, tstop=200)
