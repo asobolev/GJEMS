@@ -3,7 +3,7 @@ General Format of Input
 Three lines
 
 line 1: -fx(,fy),a,b,v
-line 2: -s<output file> -R
+line 2: -s<output file> (-R)
 line 3: <input file>
 
 
@@ -11,26 +11,26 @@ line 3: <input file>
 
 Line 1:
 
-Generalization: -fx,a,b,v
+Generalization: -[fy,]fx,a,b,v
 
-"f" is flag to denote that a function is selected from the function list that you can see in that function panel. 
+"f" is flag to denote that a function is selected from the function list that you can see in that function panel.
 
-"fx" is the funtion number. 
+"fx" is the function number.
 
-"a" Refers to average. If it is selected the value is 1 else 0 
+"a" Refers to average. If it is selected the value is 1 else 0
 
-"b"  Refers to bins. If results are calculated on "No of Bins" its 0, else if on "Width of bin" its 1. 
+"b"  Refers to bins. If results are calculated on "No of Bins" its 0, else if on "Width of bin" its 1.
 
-"v" Refers to value of "b". 
+"v" Refers to value of "b".
 
 
-Examples: 
-- f 0, 0, 0, 10.0 
-Computes Somasurface with No. of bins as 10. 
-- f 1, 1, 0, 10.0 
-Computes N_stems, averaged with No of bins as 10. 
-- f 4, 0, 1, 5 
-Computes N_tips with width of bins as 10. 
+Examples:
+- f 0, 0, 0, 10.0
+Computes Soma surface with No. of bins as 10.
+- f 1, 1, 0, 10.0
+Computes N_stems, averaged with No of bins as 10.
+- f 4, 0, 1, 5
+Computes N_tips with width of bins as 10.
 
 
 Line 2:
@@ -39,14 +39,14 @@ Line 2:
 
 Types of Outputs:
 
-1. if fy is not specified, just returns the statistics of the measure specified by fx.
+1. if fy is not specified, just returns the statistics of the measure specified by 'fx'.
    output: "<Input File>\t<Metric>\t<Total_Sum><#Compartments (considered)>\t<#Compartments(discarded)>\t<Minimum>\t<Average>\t<Maximum>\t<S.D.>"
 
-2. if fx==fy : histogram of measure specified in  fx with bins as specified by b,v. 
+2. if fx==fy : histogram of measure 'fx' with bins as specified by 'b','v'.
    if a==0: output: "<Input File>\t<measure> Distribution:<measure>\t<tab separated histogram bin centers>\n\t<measure>\t<tab separated histogram bin counts>"
-   
-3. if fx!=fy : Scatter plot of measure specified in fx vs measure specified in fy. NOTE: Average option(a) on line 1 of input file must be 1.
-   if a==1: output: "<Input File>\t<measure1>VS<measure2>:<measure1>\t<tab separated bin centers of measure1>\n<measure2>\t<tab separated bin averages of measure2>\n StdDev\t<tab separated bin standard deviations of measure2>"
- 
-4. if -R option is given, the raw data is first printed in the file, one per line and then the standard "<Input File>...." is printed.
+
+3. if fx!=fy : Scatter plot of measure 'fy' vs measure 'fx'. NOTE: Average option(a) on line 1 of input file must be 1.
+   if a==1: output: "<Input File>\t<measure1>VS<measure2>:<measure1>\t<tab separated bin centers of measure1>\n\t<measure2>\t<tab separated bin averages of measure2>\n StdDev\t<tab separated bin standard deviations of measure2>"
+
+4. if '-R' option is given, the raw data is first printed in the file, one per line and then the standard "<Input File>...." is printed.
 
