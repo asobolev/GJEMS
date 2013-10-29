@@ -294,13 +294,17 @@ class LMIO:
 
 class BasicMorph(MorphImport):
 
-
+    lmio = None
 
     #*******************************************************************************************************************
 
-    def __init__(self, morphFile):
+    def __init__(self, morphFile, initDists=False):
 
         MorphImport.__init__(self, morphFile=morphFile)
+        self.lmio = LMIO(morphFile)
+
+        if initDists:
+            self.initDistances()
 
     #*****************************************************************************************************************
 

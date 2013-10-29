@@ -129,6 +129,9 @@ class MorphImport:
     writtenPoints = []
     subTreesLabels = ['db','vb','ppl']
     subTreeSWCPaths = []
+    sec0dists = []
+    sec1dists = []
+
 
 
     #*******************************************************************************************************************
@@ -147,7 +150,9 @@ class MorphImport:
         tempPtr = nrn.h.SectionRef()
         tempPtr.root().sec.push()
         rootPtr = nrn.h.SectionRef()
+        nrn.h.distance()
         nrn.h.pop_section()
+
         return rootPtr
 
     #*******************************************************************************************************************
@@ -210,7 +215,7 @@ class MorphImport:
 
     #*******************************************************************************************************************
 
-    def initRegionIndices(self,marksFile):
+    def initRegionIndices(self, marksFile):
 
         marksFle = open(marksFile, 'r')
 
@@ -260,6 +265,19 @@ class MorphImport:
 
     #*******************************************************************************************************************
 
+    def initDistances(self):
+
+        self.sec0dists = []
+        self.sec1dists = []
+
+        for sec in self.allsec:
+
+            sec.push()
+            self.sec0dists.append(nrn.h.distance(0))
+            self.sec1dists.append(nrn.h.distance(1))
+            nrn.h.pop_section()
+
+    #*******************************************************************************************************************
     def __init__(self, morphFile):
 
         fNameWords = morphFile.rsplit('/')
