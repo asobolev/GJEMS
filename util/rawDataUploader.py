@@ -1,7 +1,7 @@
-#!/usr/bin/env python
 
 
-from GJMorphSim.ephys.rawDataUpload import RawDataUploader
+
+from ephys.rawDataUpload import RawDataUploader
 from easygui import fileopenbox, ynbox, msgbox
 
 smr = fileopenbox('Indicate the smr file to use', filetypes=['*.smr'])
