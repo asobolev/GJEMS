@@ -1,4 +1,4 @@
-from GJMorphSim.morphImport import MorphImport
+from GJEMS.morphImport import MorphImport
 from neuronvisio.controls import Controls
 from easygui import fileopenbox
 
