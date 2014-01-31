@@ -190,6 +190,11 @@ class MorphImport:
 
     def initRegionIndices(self, marksFile):
 
+        nrn.load_mechanisms(os.path.join(self.packagePrefix, 'etc'))
+
+        for sec in self.allsec:
+            sec.insert('regionInd')
+
         marksFle = open(marksFile, 'r')
 
         #skip commented lines
@@ -261,13 +266,8 @@ class MorphImport:
 
         self.cell = nrn.h.mkcell(morphFile)
 
-        nrn.load_mechanisms(os.path.join(self.packagePrefix, 'etc'))
-
         self.rootPtr = self.getRootPtr()
 
         self.getTipPtrs(self.rootPtr)
-
-        for sec in self.allsec:
-            sec.insert('regionInd')
 
     #*******************************************************************************************************************
