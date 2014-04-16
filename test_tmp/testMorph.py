@@ -1,5 +1,7 @@
-from GJMorphSim.morph import *
 import matplotlib.pyplot as pyplot
+
+from GJEMS.morph.morph import *
+
 
 testMorphFile = 'swcFiles/HB060602_3ptSoma_subTrees/HB060602_3ptSoma_db.swc'
 

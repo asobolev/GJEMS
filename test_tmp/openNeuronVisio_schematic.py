@@ -1,6 +1,8 @@
-from GJEMS.morph import BasicMorph
-from neuronvisio.controls import Controls
 from easygui import fileopenbox
+
+from neuronvisio.controls import Controls
+
+from GJEMS.morph.morph import BasicMorph
 
 
 testMorph = BasicMorph(fileopenbox(msg='SWC file with three point soma', filetypes=['*.swc']))

@@ -63,7 +63,7 @@ for measureInd in xrange(len(measureNames)):
         plt.errorbar([neuronInd], measureMeans[measureInd,neuronInd],measureStds[measureInd, neuronInd],
                      ecolor=cols[neuronInd], marker='o', mfc=cols[neuronInd], ms=5, ls='None', label=lable)
     plt.ylabel(measureLabels[measureInd] + ' (' + measureUnits[measureInd] + ')')
-    plt.ticklabel_format(style='sci', scilimits=(-2,3), axis='y',)
+    plt.ticklabel_format(style='sci', scilimits=(-2,3), axis='y')
     plt.xlim(-1,8)
     plt.xticks([])
 

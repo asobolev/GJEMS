@@ -1,6 +1,6 @@
 import numpy as np
 import os
-from GJMorphSim.ephys.GNodeUpoadHelpers import *
+from GJEMS.ephys.GNodeUpoadHelpers import *
 from neo import Spike2IO
 import quantities as qu
 import matplotlib.pyplot as plt
@@ -13,18 +13,11 @@ from neo import Block, Segment,Event, NeoHdf5IO, Epoch
 
 class SimulationParameterExtracter():
 
-    ephysFile = None
-    expName = None
-    voltageSignal = None
-    currentSignal = None
-    currentMarkerTimes = None
-    currentsMarked = None
-    voltageTraces = None
-    restingMembranePotentials = None
-    currentAmps = None
-    fitDetails = dict(pOpts=None, bestWindow=None, timeConstants=None, errors=None)
-    inputResistances = []
-    CCData = None
+    def __init__(self):
+        fitDetails = dict(pOpts=None, bestWindow=None, timeConstants=None, errors=None)
+        self.tSS_Start = 200 * qu.ms
+        self.tSS_Stop = 250 *qu.ms
+
 
     #*******************************************************************************************************************
 
@@ -43,13 +36,16 @@ class SimulationParameterExtracter():
             self.currentMarkerTimes = dataBlock.segments[0].eventarrays[1].times
             currentStr = dataBlock.segments[0].eventarrays[1].annotations['extra_labels']
             self.currentsMarked = np.asarray([float(s.strip('nA')) for s in currentStr]) * qu.nA
-            expStartTime = self.currentMarkerTimes[0]
-            n = len(self.currentMarkerTimes)
-            expEndTime = self.currentMarkerTimes[n - 1] \
-                         + 1.5 * (self.currentMarkerTimes[n - 1] - self.currentMarkerTimes[n - 2])
+            expStartTime = self.currentMarkerTimes[0] \
+                           - 0.5 * (self.currentMarkerTimes[1] - self.currentMarkerTimes[0])
+            expEndTime = self.currentMarkerTimes[-1] \
+                         + 1.5 * (self.currentMarkerTimes[-1] - self.currentMarkerTimes[-2])
         else:
             expStartTime = startStopTimes[0] * qu.s
             expEndTime = startStopTimes[1] * qu.s
+
+        expStartTime = min(expStartTime, entireVoltageSignal.t_start)
+        expEndTime = max(expEndTime, entireVoltageSignal.t_stop)
 
         expStartIndex = int((expStartTime - entireVoltageSignal.t_start) * entireVoltageSignal.sampling_rate)
         expEndIndex = int((expEndTime - entireVoltageSignal.t_start) * entireVoltageSignal.sampling_rate)
@@ -86,6 +82,9 @@ class SimulationParameterExtracter():
             self.restingMembranePotentials.append(np.mean(self.voltageSignal[startToUse:start]))
             self.voltageTraces.append(self.voltageSignal[start: stop + 1])
             startTime = self.currentSignal.t_start + start * self.currentSignal.sampling_period
+            import ipdb
+            ipdb.set_trace()
+
             self.currentAmps.append(self.currentsMarked[max(np.where(self.currentMarkerTimes < startTime)[0])])
 
     #*******************************************************************************************************************
@@ -220,7 +219,7 @@ class SimulationParameterExtracter():
                 allx = np.arange(len(vTraceValid)) * vTrace.sampling_period.magnitude
                 plt.plot(allx, vTraceValid, 'r')
                 plt.plot(allx, vTrace[startIndex].magnitude + np.sign(iAmp.magnitude) * np.array(funcToFit(allx,\
-                                            pOpt[0], pOpt[1])),'g')
+                                            pOpt[0], pOpt[1])), 'g')
                 plt.title(str(1000/pOpt[1]) + 'ms')
                 plt.draw()
                 ch = 'n'
@@ -233,21 +232,31 @@ class SimulationParameterExtracter():
 
             fitParams.append(segFitParams)
 
-
     #*******************************************************************************************************************
-    def getInputResistance(self):
 
-        vChanges = [x[0][1] * qu.mV for x in self.fitDetails['pOpts']]
-        linFunc = lambda x, slope, yIntercept: slope * x + yIntercept
-
-        pOpt, pCov = curve_fit(linFunc, xdata=self.currentAmps, ydata=vChanges)
+    def plotIV(self):
 
         plt.figure()
         plt.show(block=False)
-        plt.plot(self.currentAmps, vChanges, 'r*')
-        plt.plot(self.currentAmps, linFunc(self.currentAmps, pOpt[0], pOpt[1]), 'g')
-        plt.title(pOpt)
-        plt.draw()
+
+
+        for segInd in range(len(self.CCData.segments)):
+            # plt.cla()
+
+            vDiffs = []
+            seg = self.CCData.segments[segInd]
+            for sigInd in range(len(seg.analogsignals)):
+                vTrace = seg.analogsignals[sigInd]
+                tVec = range(len(vTrace)) * vTrace.sampling_period
+                iAmp = unicode2quantities(seg.events[sigInd].label)
+                restingMemPot = unicode2quantities(seg.epochs[sigInd].label)
+                indexStartSS = np.floor((self.tSS_Start * vTrace.sampling_rate).simplified.magnitude)
+                indexEndSS = np.ceil((self.tSS_Stop * vTrace.sampling_rate).simplified.magnitude)
+                voltageSS = np.mean(vTrace[indexStartSS:indexEndSS])
+                vDiffs.append(voltageSS - restingMemPot)
+
+            plt.errorbar(iAmp, np.mean(vDiffs), np.std(vDiffs), color='r')
+            plt.draw()
 
     #*******************************************************************************************************************
 
@@ -287,7 +296,7 @@ class SimulationParameterExtracter():
         currentAmpsSet = np.sort(list(set([float(x.magnitude) for x in self.currentAmps]))).tolist()
 
         self.CCData = Block('Current Clamp Data')
-        self.CCData.segments = [Segment(name='Current Of ' + unicode(iAmp)) for iAmp in currentAmpsSet]
+        self.CCData.segments = [Segment(name='Current Of ' + unicode(iAmp) + 'nA') for iAmp in currentAmpsSet]
         for iAmp, vTrace in zip(self.currentAmps, self.voltageTraces):
             presSegInd = currentAmpsSet.index(iAmp)
             self.CCData.segments[presSegInd].analogsignals.append(vTrace)

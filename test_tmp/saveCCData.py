@@ -1,4 +1,4 @@
-from GJMorphSim.ephys.simParamExtract import *
+from GJEMS.ephys.simParamExtract import *
 from easygui import fileopenbox
 import matplotlib.pyplot as plt
 import numpy as np

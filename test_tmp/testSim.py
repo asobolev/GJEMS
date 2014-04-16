@@ -1,20 +1,31 @@
-from GJMorphSim.sim import *
+from easygui import fileopenbox
 
-testMorphFile = 'swcFiles/HB060602_3ptSoma_subTrees/HB060602_3ptSoma_db.swc'
+import matplotlib.pyplot as plt
+import numpy as np
+
+from GJEMS.sim.sim import *
+
+
+testMorphFile = fileopenbox(msg='SWC file with three point soma', filetypes=['*.swc'])
 
 testSim = BasicSim(morphFile=testMorphFile)
-testSim.setSimProps(dt=0.025, tstop=200)
-rootStim = testSim.placeRootIClamp(amp=0.05, dur=100, delay=50)
-tipVRecs = testSim.recordAllTipsVoltages()
+testSim.setSimProps(dt=0.1, tstop=70)
+rootStim = testSim.placeRootIClamp(amp=0.05, dur=50, delay=10)
+nTips = len(testSim.tipPtrs)
+toRecord = np.random.random_integers(low=0, high=nTips, size=5)
+tipVRecs = []
+for ind in toRecord:
+    tipVRecs.append(testSim.recordTipVoltage(testSim.tipPtrs[ind]))
+
 testSim.initAndRun(-65)
 tVec = testSim.getTimeVec()
-fig1 = tipVRecs[0].plotSeparately(tVec)
-tipVRecs[10].addPlotToFig(tVec, fig1, 'b')
-tipVRecs[20].addPlotToFig(tVec, fig1, 'g')
-tipVRecs[30].addPlotToFig(tVec, fig1, 'm')
-tipVRecs[40].addPlotToFig(tVec, fig1, 'c')
-tipVRecs[50].addPlotToFig(tVec, fig1, 'k')
-showPlot()
+fig1 = plt.figure()
+plt.show(block=False)
+
+cols = ['r', 'g', 'b', 'm', 'k', 'c']
+for tipVRec, col in zip(tipVRecs, cols):
+    tipVRec.addPlotToFig(tVec, fig1, col)
+plt.draw()
 
 
 

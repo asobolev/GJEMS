@@ -1,7 +1,5 @@
 General Format of Input
 
-Three lines
-
 line 1: -fx1(,fy1),a1,b1,v1 -fx2(,fy2),a2,b2,v2 -fx3(,fy3),a3,b3,v3 -fx3(,fy3),a3,b3,v3
 line 2: -s<output file> (-R)
 line 3: <input file1>

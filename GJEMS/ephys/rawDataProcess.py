@@ -85,11 +85,18 @@ class RawDataProcessor():
         mainSec = self.GNodeSession.select(gnodeclient.Model.SECTION, {'name': self.expName})
         ent = 1
         if len(mainSec) > 1:
-            ent = raw_input('More than one copies of the data found. Enter the serial number of the entry to use:')
+            ent = raw_input(str(len(mainSec)) + 'copies of the data found. '\
+                                                'Enter the serial number of the entry to use:')
         self.mainSec = self.GNodeSession.get(mainSec[ent - 1].location, recursive = True, refresh = True)
 
-        subSec = self.mainSec.sections[self.expName + '_Experiment']
-        dataBlock = subSec.blocks[0]
+        datablock = None
+
+        for blk in mainSec.blocks:
+            if blk.name == self.expName + '_raw':
+                datablock = blk
+
+        assert datablock is not None, 'No block with name ' + self.expName + '_raw found.'
+
         # dataBlock = self.GNodeSession.get(blocks[0].location, refresh=True, recursive=True)
         self.originalFile = dataBlock.file_origin
 

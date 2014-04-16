@@ -37,24 +37,26 @@ def extractCSVMetaData(csvFile, blockName):
     except StopIteration:
         raise IOError('CSV file supplied does not have information of the given SMR file.')
 
-    csvData['freqs'] = [float(x) * qu.Hz for x in lne[freqCol].split(',')]
-    unresolved = []
-    try:
-        for word in lne[pulseCol].split(','):
-            if word.count('/'):
-                (duration, interval) = word.split('/')
-                unresolved.append(float(duration) * qu.ms)
-                csvData['pulse'][1].extend([float(interval) * qu.ms] * len(unresolved))
-                csvData['pulse'][0].extend(unresolved)
-                unresolved = []
-            else:
-                unresolved.append(float(word) * qu.ms)
+    csvData['freqs'] = [float(x) * qu.Hz for x in lne[freqCol].split(',') if not x == '']
 
-        csvData['pulse'][1].extend(unresolved)
-        lastNum = csvData['pulse'][0][len(csvData['pulse'][0]) - 1]
-        csvData['pulse'][0].extend([lastNum] * len(unresolved))
-    except:
-        raise(Exception('Improper entry in pulse column for the given smr file.'))
+    if not lne[pulseCol] == '':
+        unresolved = []
+        try:
+            for word in lne[pulseCol].split(','):
+                if word.count('/'):
+                    (duration, interval) = word.split('/')
+                    unresolved.append(float(duration) * qu.ms)
+                    csvData['pulse'][1].extend([float(interval) * qu.ms] * len(unresolved))
+                    csvData['pulse'][0].extend(unresolved)
+                    unresolved = []
+                else:
+                    unresolved.append(float(word) * qu.ms)
+
+            csvData['pulse'][1].extend(unresolved)
+            lastNum = csvData['pulse'][0][-1]
+            csvData['pulse'][0].extend([lastNum] * len(unresolved))
+        except:
+            raise(Exception('Improper entry in pulse column for the given smr file.'))
 
     spontStr = lne[spontCol]
     csvData['spont'] = bool(spontStr.count('yes') + spontStr.count('Yes') + spontStr.count('YES'))
@@ -67,17 +69,6 @@ def extractCSVMetaData(csvFile, blockName):
 
 
 class RawDataUploader():
-
-    dataBlock = None
-    dataBlockToUpload = None
-    spike2Reader = None
-    voltageSignal = None
-    vibrationSignal = None
-    GNodeSession = None
-    csvData = None
-    blockName = None
-    mainSec = None
-    expName = None
 
     #*******************************************************************************************************************
 
@@ -116,6 +107,11 @@ class RawDataUploader():
         entireVoltageSignal = self.dataBlock.segments[0].analogsignals[0]
         entireVibrationSignal = self.dataBlock.segments[0].analogsignals[1]
 
+        if len(self.dataBlock.segments[0].analogsignals) > 2:
+                entireCurrentSignal = self.dataBlock.segments[0].analogsignals[2]
+                assert len(self.dataBlock.segments[0].eventarrays) > 1, \
+                            'Error: Markers for current magnitudes not found.'
+
         recordingStartTime = max(entireVibrationSignal.t_start, entireVoltageSignal.t_start)
         recordingEndTime = min(entireVibrationSignal.t_stop, entireVoltageSignal.t_stop)
 
@@ -130,6 +126,9 @@ class RawDataUploader():
 
         self.vibrationSignal = entireVibrationSignal[recordingStartIndex:recordingEndIndex + 1] * 27.2 * qu.um
         self.voltageSignal = entireVoltageSignal[recordingStartIndex:recordingEndIndex + 1] * 20 * qu.mV
+
+        if len(self.dataBlock.segments[0].analogsignals) > 2:
+            self.currentSignal = entireCurrentSignal[recordingStartIndex:recordingEndIndex + 1] * qu.nA
 
     #*******************************************************************************************************************
 
@@ -149,17 +148,33 @@ class RawDataUploader():
         raw_seg.analogsignals.append(self.vibrationSignal)
         raw_seg.analogsignals.append(self.voltageSignal)
 
+        if len(self.dataBlock.segments[0].analogsignals) > 2:
+
+            self.currentSignal.name = 'Current Gating Signal'
+            self.currentSignal.description = 'Indicates whether a current is being injected or not. The magnitudes ' \
+                                             'are given in an event array'
+
+            raw_seg.analogsignals.append(self.currentSignal)
+            raw_seg.eventarrays.append(self.dataBlock.segments[0].eventarrays[1])
+
         self.dataBlockToUpload.segments.append(raw_seg)
 
         self.mainSec = odml.Section(name=self.expName, type='experiment')
-        expSummary = odml.Section(name=self.expName + '_Experiment', type='experiment/electrophysiology')
+        expSummary = odml.Section(name='VibrationStimulus', type='experiment/electrophysiology')
 
-        freqVals = []
-        expSummary.append(odml.Property(name='FrequenciesUsed', value=self.csvData['freqs']))
-        expSummary.append(odml.Property(name='PulseInputDurations', value=self.csvData['pulse'][0]))
-        expSummary.append(odml.Property(name='PulseInputIntervals', value=self.csvData['pulse'][1]))
+        if not self.csvData['freqs'] == []:
+            expSummary.append(odml.Property(name='FrequenciesUsed', value=self.csvData['freqs']))
+
+        if not self.csvData['pulse'][0] == []:
+            expSummary.append(odml.Property(name='PulseInputDurations', value=self.csvData['pulse'][0]))
+
+        if not self.csvData['pulse'][1] == []:
+            expSummary.append(odml.Property(name='PulseInputIntervals', value=self.csvData['pulse'][1]))
+
         expSummary.append(odml.Property(name='SpontaneousActivityPresence', value=self.csvData['spont']))
-        expSummary.append(odml.Property(name='NatureOfResponse', value=self.csvData['resp']))
+
+        if not self.csvData['resp'] == '':
+            expSummary.append(odml.Property(name='NatureOfResponse', value=self.csvData['resp']))
 
         self.mainSec.append(expSummary)
 
@@ -169,11 +184,9 @@ class RawDataUploader():
 
         print 'Refreshing metadata'
         mainSec = self.GNodeSession.get(secLoc, refresh=True, recursive=True)
-        for se in mainSec.sections:
-            if se.name == self.expName + '_Experiment':
-                self.dataBlockToUpload.section = se
-                break
         print 'Refreshing metadata Done'
+
+        self.dataBlockToUpload.section = mainSec
 
         print 'Uploading Data'
         blkLoc = uploadNewBlockRecursive(self.GNodeSession, self.dataBlockToUpload)
@@ -182,5 +195,3 @@ class RawDataUploader():
     #*******************************************************************************************************************
 
 #***********************************************************************************************************************
-
-
