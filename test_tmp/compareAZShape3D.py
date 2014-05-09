@@ -69,3 +69,4 @@ for swc in newlyEmergedNrns:
     addPoints3D(ax, azPtsSTD, 'b')
 
 plt.draw()
+

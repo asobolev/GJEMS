@@ -1,6 +1,8 @@
-from GJEMS.morph.morph import BasicMorph, rotatePts3D
+from GJEMS.morph.morph import BasicMorph, rotatePts3D, getRotMatWithStartTargetVector
 import sys
 import numpy as np
+import os
+import shutil
 
 assert len(sys.argv) == 2, 'Only one argument, the path of the swcfile expected, ' + str(len(sys.argv)) + 'found'
 swcfName = sys.argv[1]
@@ -25,7 +27,16 @@ swcPts = swcData[:, 2:5]
 standFunc = testMorph.getStandardizationFunction()
 swcData[:, 2:5] = standFunc(swcData[:, 2:5])
 
+# evecs, evals, v = np.linalg.svd(swcData[:, 2:5].T, full_matrices=False)
+#
+# smallRot = getRotMatWithStartTargetVector(evecs[:, 0], [0, 1, 0])
+#
+# swcData[:, 2:5] = rotatePts3D(swcData[:, 2:5], smallRot)
 
 
 np.savetxt(swcfName[:swcfName.index('.')]+'_STD.swc', swcData,'%d %d %0.6f %0.6f %0.6f %0.6f %d',
             header=headr, comments='#')
+
+marksFilePath = swcfName[:-4] + '.marks'
+if os.path.isfile(marksFilePath):
+    shutil.copy(marksFilePath, swcfName[:-4] + '_STD.marks')

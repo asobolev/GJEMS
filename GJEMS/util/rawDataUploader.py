@@ -1,6 +1,6 @@
 from GJEMS.ephys.rawDataUpload import RawDataUploader
 from easygui import fileopenbox, ynbox, msgbox
-
+from time import asctime
 
 smr = fileopenbox('Indicate the smr file to use', filetypes=['*.smr'])
 csv = fileopenbox('Indicate the csv file to use', filetypes=['*.csv'])
@@ -20,7 +20,7 @@ if upload:
     uploader.parseSpike2Data()
     uploader.uploadToGNode()
 
-    msgbox('Finished. Data uploaded')
+    msgbox(asctime() + 'Finished. Data upload Completed.')
 
 
 

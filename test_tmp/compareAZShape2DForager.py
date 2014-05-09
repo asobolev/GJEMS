@@ -34,29 +34,34 @@ def getAZ2D(swcFile):
 plt.figure()
 plt.show(block=False)
 
-foragerSWCPath = '/home/ajay/PowerFolders/GinJangNDB_Upload/SigenSegmentations/Results/GoodSamplesDLInt1_v2/forager'
-newlyEmergedSWCPath = os.path.join('/home/ajay/PowerFolders/GinJangNDB_Upload/SigenSegmentations/Results',
-                                   'GoodSamplesDLInt1_v2', 'newlyEmerged')
+# foragerSWCPath = '/home/ajay/PowerFolders/GinJangNDB_Upload/SigenSegmentations/Results/GoodSamplesDLInt1_v2/forager'
+# newlyEmergedSWCPath = os.path.join('/home/ajay/PowerFolders/GinJangNDB_Upload/SigenSegmentations/Results',
+#                                    'GoodSamplesDLInt1_v2', 'newlyEmerged')
 
+foragerSWCPath = 'swcFiles/GoodSamplesDLInt1_v2/forager'
 
 foragerNrns = ['HB130313-4NS_3ptSoma.swc',
-               # 'HB130322-1NS_.swc',
-               # 'HB130408-1NS_3ptSoma.swc',
+               'HB130322-1NS_3ptSoma.swc',
+               'HB130408-1NS_3ptSoma.swc',
                'HB130425-1NS_3ptSoma.swc',
-               # 'HB130501-2NS_STD.swc'
+               'HB130501-2NS_3ptSoma.swc',
+               'HB060607-2NS_3ptSoma.swc'
                 ]
+cols = ['r', 'g', 'b', 'm', 'k', 'c', 'r', 'g']
 
-# foragerSWCs.append('/home/ajay/repos/GJEMS/test_tmp/swcFiles/HB060602_3ptSoma.swc')
+foragerSWCs = [os.path.join(foragerSWCPath, x) for x in foragerNrns]
+
+# foragerSWCs.append('swcFiles/HB060602_3ptSoma.swc')
 
 
 # newlyEmergedNrns = ['HB130523-3NS_STD.swc', ]
 
 
-for swc in [os.path.join(foragerSWCPath, x) for x in foragerNrns]:
-    [azPoints2D, bestTheta, aPara, ymin, xShift, err] = getAZ2D(swc)
+for swcInd, swc in enumerate(foragerSWCs):
+    [azPoints2D, bestTheta, ymin, xShift, err] = getAZ2D(swc)
     bestFitPts = rotatePts2D(np.asarray(azPoints2D), bestTheta)
-    print aPara, ymin, xShift, err
-    plt.plot(bestFitPts[:, 0] - xShift, bestFitPts[:, 1] - min(bestFitPts[:, 1]), 'r')
+    print ymin, xShift, err
+    plt.plot(bestFitPts[:, 0] - xShift, bestFitPts[:, 1] - min(bestFitPts[:, 1]), cols[swcInd])
 
 plt.draw()
 

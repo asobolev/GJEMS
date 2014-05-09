@@ -9,8 +9,8 @@ testMorphFile = sys.argv[1]
 # testMorphFile = 'swcFiles/HB060602_3ptSoma_subTrees/HB060602_3ptSoma_db.swc'
 # testMorphFile = fileopenbox(msg='SWC file with three point soma', filetypes=['*.swc'])
 testNrn = MorphImport(testMorphFile)
-# testNrn.initRegionIndices(testMorphFile.rstrip('.swc') + '.marks')
-# testNrn.saveSubtrees()
+testNrn.initRegionIndices(testMorphFile.rstrip('.swc') + '.marks')
+testNrn.saveSubtrees()
 
 # nChilds = []
 # for sec in testNrn.allsec:

@@ -1,12 +1,11 @@
 from GJEMS.morph.morph import BasicMorph, rotatePts2D
 import matplotlib.pyplot as plt
-from easygui import fileopenbox
-import numpy as np
-from math import pi as PI
-from math import sin, cos
-from time import sleep
+# from easygui import fileopenbox
+import sys
 
-testMorphFile = fileopenbox(msg='SWC file with three point soma', filetypes=['*.swc'])
+assert len(sys.argv) == 2, 'Only one argument, the path of the swcfile expected, ' + str(len(sys.argv)) + 'found'
+testMorphFile = sys.argv[1]
+# testMorphFile = fileopenbox(msg='SWC file with three point soma', filetypes=['*.swc'])
 #testMorphFile = 'swcFiles/HB060602_3ptSoma.swc'
 
 
@@ -31,7 +30,7 @@ fig1 = plt.figure()
 plt.show(block=False)
 
 plt.plot(azPoints2D[:, 0], azPoints2D[:, 1], 'g-x')
-
+plt.draw()
 
 
 # fig2 = plt.figure()
@@ -39,13 +38,14 @@ plt.plot(azPoints2D[:, 0], azPoints2D[:, 1], 'g-x')
 # plt.plot(thetas, diffs)
 # plt.draw()
 
-plt.figure(fig1.number)
 
-bestTheta, aPara, ymin, xShift,err  = testMorph.fitParabola(azPoints2D)
+
+bestTheta, ymin, xShift,err  = testMorph.symmetrySearchByRotation(azPoints2D)
 bestPts = rotatePts2D(azPoints2D, bestTheta)
-yPara = ymin + aPara * ((bestPts[:, 0] - xShift) ** 2)
+# yPara = ymin + aPara * ((bestPts[:, 0] - xShift) ** 2)
 
+plt.figure(fig1.number)
 plt.plot(bestPts[:, 0] - xShift, bestPts[:, 1], 'r-x')
-plt.plot(bestPts[:, 0] - xShift, yPara, 'b-')
+# plt.plot(bestPts[:, 0] - xShift, yPara, 'b-')
 plt.draw()
 

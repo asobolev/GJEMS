@@ -15,6 +15,7 @@ class SimulationParameterExtracter():
 
     def __init__(self):
         fitDetails = dict(pOpts=None, bestWindow=None, timeConstants=None, errors=None)
+        #start and stop times of steady state response
         self.tSS_Start = 200 * qu.ms
         self.tSS_Stop = 250 *qu.ms
 
@@ -32,10 +33,12 @@ class SimulationParameterExtracter():
         entireVoltageSignal = dataBlock.segments[0].analogsignals[0]
         entireCurrentSignal = dataBlock.segments[0].analogsignals[2]
 
+        self.currentMarkerTimes = dataBlock.segments[0].eventarrays[1].times
+        currentStr = dataBlock.segments[0].eventarrays[1].annotations['extra_labels']
+        self.currentsMarked = np.asarray([float(s.strip('nA')) for s in currentStr]) * 0.1 * qu.nA
+
         if startStopTimes is None:
-            self.currentMarkerTimes = dataBlock.segments[0].eventarrays[1].times
-            currentStr = dataBlock.segments[0].eventarrays[1].annotations['extra_labels']
-            self.currentsMarked = np.asarray([float(s.strip('nA')) for s in currentStr]) * qu.nA
+
             expStartTime = self.currentMarkerTimes[0] \
                            - 0.5 * (self.currentMarkerTimes[1] - self.currentMarkerTimes[0])
             expEndTime = self.currentMarkerTimes[-1] \
@@ -44,8 +47,8 @@ class SimulationParameterExtracter():
             expStartTime = startStopTimes[0] * qu.s
             expEndTime = startStopTimes[1] * qu.s
 
-        expStartTime = min(expStartTime, entireVoltageSignal.t_start)
-        expEndTime = max(expEndTime, entireVoltageSignal.t_stop)
+        expStartTime = max(expStartTime, entireVoltageSignal.t_start)
+        expEndTime = min(expEndTime, entireVoltageSignal.t_stop)
 
         expStartIndex = int((expStartTime - entireVoltageSignal.t_start) * entireVoltageSignal.sampling_rate)
         expEndIndex = int((expEndTime - entireVoltageSignal.t_start) * entireVoltageSignal.sampling_rate)
@@ -82,8 +85,8 @@ class SimulationParameterExtracter():
             self.restingMembranePotentials.append(np.mean(self.voltageSignal[startToUse:start]))
             self.voltageTraces.append(self.voltageSignal[start: stop + 1])
             startTime = self.currentSignal.t_start + start * self.currentSignal.sampling_period
-            import ipdb
-            ipdb.set_trace()
+            # import ipdb
+            # ipdb.set_trace()
 
             self.currentAmps.append(self.currentsMarked[max(np.where(self.currentMarkerTimes < startTime)[0])])
 
@@ -239,9 +242,10 @@ class SimulationParameterExtracter():
         plt.figure()
         plt.show(block=False)
 
+        vDiffMeans = []
+        iAmps = []
 
         for segInd in range(len(self.CCData.segments)):
-            # plt.cla()
 
             vDiffs = []
             seg = self.CCData.segments[segInd]
@@ -253,10 +257,37 @@ class SimulationParameterExtracter():
                 indexStartSS = np.floor((self.tSS_Start * vTrace.sampling_rate).simplified.magnitude)
                 indexEndSS = np.ceil((self.tSS_Stop * vTrace.sampling_rate).simplified.magnitude)
                 voltageSS = np.mean(vTrace[indexStartSS:indexEndSS])
-                vDiffs.append(voltageSS - restingMemPot)
 
-            plt.errorbar(iAmp, np.mean(vDiffs), np.std(vDiffs), color='r')
+                if sum(np.shape(vTrace[indexStartSS:indexEndSS])):
+
+                    vDiffs.append(voltageSS - restingMemPot)
+
+                else:
+                    print('No voltage Signal in the time range ' + str([self.tSS_Start, self.tSS_Stop])
+                            + 'for segment=' + str(segInd) + 'trial=' + str(sigInd))
+
+            plt.errorbar(np.mean(vDiffs), iAmp, xerr=np.std(vDiffs), color='r')
             plt.draw()
+
+            vDiffMeans.append(np.mean(vDiffs))
+            iAmps.append(iAmp.magnitude)
+
+        matA = np.ones([len(vDiffMeans), 2])
+        matB = np.asarray(iAmps).T
+
+        matA[:, 0] = np.asarray(vDiffMeans).T
+
+        m, c = np.linalg.lstsq(matA, matB)[0]
+
+
+        iAmps = np.asarray(iAmps)
+        vDiffMeans = np.asarray(vDiffMeans)
+
+        plt.plot(vDiffMeans, m * vDiffMeans + c, 'b')
+        plt.title('m=' + str(m) + ' c=' + str(c) + ' Rin(1/m)=' + str(1/m))
+
+        plt.axis('tight')
+        plt.draw()
 
     #*******************************************************************************************************************
 

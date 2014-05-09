@@ -8,6 +8,8 @@ smr = fileopenbox('Indicate the smr file to use', filetypes=['*.smr'])
 
 spe = SimulationParameterExtracter()
 
+#Values for 13113-1Al
+# spe.parseSpike2Data(smr, [1670, 1748])
 spe.parseSpike2Data(smr)
 
 spe.extractResponses()

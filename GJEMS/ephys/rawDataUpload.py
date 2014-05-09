@@ -5,6 +5,7 @@ import gnodeclient
 from .GNodeUpoadHelpers import *
 import odml
 import csv
+from time import asctime
 
 #*******************************************************************************************************************
 
@@ -83,6 +84,8 @@ class RawDataUploader():
         self.csvFile = csvFile
         self.GNodeSession = gnodeclient.session.create(location="http://predata.g-node.org",
                                                        username="bob", password="pass")
+        spike2Reader = Spike2IO(self.ephysFile)
+        self.dataBlock = spike2Reader.read()[0]
 
     #*******************************************************************************************************************
 
@@ -101,24 +104,18 @@ class RawDataUploader():
 
     def parseSpike2Data(self):
 
-        spike2Reader = Spike2IO(self.ephysFile)
-        self.dataBlock = spike2Reader.read()[0]
-
         entireVoltageSignal = self.dataBlock.segments[0].analogsignals[0]
         entireVibrationSignal = self.dataBlock.segments[0].analogsignals[1]
 
         if len(self.dataBlock.segments[0].analogsignals) > 2:
                 entireCurrentSignal = self.dataBlock.segments[0].analogsignals[2]
-                assert len(self.dataBlock.segments[0].eventarrays) > 1, \
-                            'Error: Markers for current magnitudes not found.'
+
 
         recordingStartTime = max(entireVibrationSignal.t_start, entireVoltageSignal.t_start)
         recordingEndTime = min(entireVibrationSignal.t_stop, entireVoltageSignal.t_stop)
 
-        for eventArray in self.dataBlock.segments[0].eventarrays:
-            if len(eventArray.times) == 2:
-                recordingStartTime = eventArray.times[0]
-                recordingEndTime = eventArray.times[1]
+        recordingStartTime = self.dataBlock[0].segments[0].eventarrays[0].times[0]
+        recordingEndTime = self.dataBlock[0].segments[0].eventarrays[0].times[1]
 
         recordingStartIndex = int((recordingStartTime - entireVoltageSignal.t_start)
                                   * entireVoltageSignal.sampling_rate)
@@ -150,12 +147,14 @@ class RawDataUploader():
 
         if len(self.dataBlock.segments[0].analogsignals) > 2:
 
-            self.currentSignal.name = 'Current Gating Signal'
+            self.currentSignal.name = 'Current Signal'
             self.currentSignal.description = 'Indicates whether a current is being injected or not. The magnitudes ' \
                                              'are given in an event array'
 
             raw_seg.analogsignals.append(self.currentSignal)
-            raw_seg.eventarrays.append(self.dataBlock.segments[0].eventarrays[1])
+
+            if len(self.dataBlock.segments[0].eventarrays) == 2:
+                raw_seg.eventarrays.append(self.dataBlock.segments[0].eventarrays[1])
 
         self.dataBlockToUpload.segments.append(raw_seg)
 
@@ -178,19 +177,19 @@ class RawDataUploader():
 
         self.mainSec.append(expSummary)
 
-        print 'Uploading metadata'
+        print asctime() + 'Uploading metadata'
         secLoc = uploadNewSectionRecursive(self.GNodeSession, self.mainSec)
-        print 'Uploading metadata Done'
+        print asctime() + 'Uploading metadata Done'
 
-        print 'Refreshing metadata'
+        print asctime() + 'Refreshing metadata'
         mainSec = self.GNodeSession.get(secLoc, refresh=True, recursive=True)
-        print 'Refreshing metadata Done'
+        print asctime() + 'Refreshing metadata Done'
 
         self.dataBlockToUpload.section = mainSec
 
-        print 'Uploading Data'
+        print asctime() + 'Uploading Data'
         blkLoc = uploadNewBlockRecursive(self.GNodeSession, self.dataBlockToUpload)
-        print 'Uploading Data Done'
+        print asctime() + 'Uploading Data Done'
 
     #*******************************************************************************************************************
 
