@@ -2,7 +2,7 @@ import os
 from neo import Spike2IO, Segment, Block
 import quantities as qu
 import gnodeclient
-from GNodeUpoadHelpers import *
+from .GNodeUpoadHelpers import *
 import odml
 import csv
 from time import asctime

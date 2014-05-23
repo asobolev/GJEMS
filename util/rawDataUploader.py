@@ -1,4 +1,4 @@
-from rawDataUpload import RawDataUploader
+from GJEMS.ephys.rawDataUpload import RawDataUploader
 from easygui import fileopenbox, ynbox, msgbox
 from time import asctime
 
@@ -22,7 +22,7 @@ try:
         uploader.uploadToGNode()
 
         msgbox(asctime() + ' : Finished. Data upload Completed.')
-except Execption:
+except Exception:
     a = raw_input('The program has encountered an error.' \
                    + 'If you can\'t figure out what when wrong, please take'\
                    + 'a screenshot if this window and send it to '\
