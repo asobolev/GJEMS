@@ -38,7 +38,7 @@ compPres = 3
 def getLabelSections(secPtr):
 
     xVals = np.asarray([x[2] for x in partRootDatas])
-    sectionXYZD = NRN.getSectionxyzd(secPtr)
+    sectionXYZD = NRN.getSectionxyzr(secPtr)
     for xyzd in sectionXYZD:
 
         whereXMatches = np.where(xVals == round(xyzd[0], compPres))[0]

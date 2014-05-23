@@ -2,49 +2,48 @@ import json
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-
+import subprocess
 
 def getJSONDict(dirPath):
     with open(os.path.join(dirPath, 'morphometrics.json')) as fle:
         return json.load(fle)
 
 
-def getScalarData(dirPath, exceptions=None):
+def getScalarData(nrns):
     """
-    Takes a directory path with swc Files and _morphData folders and collects all their scalar valued morphomentric data.
+    Takes a list of swc Files and uses _morphData folders to collect their scalar valued morphomentric data.
     Data will be returned in a 10x<#Nrns> numpy array with the the rows being labeled as (Width, Height, Depth, Length, Volume,
     Surface, NBifs, StdAlongEVec1, StdAlongEVec1, StdAlongEVec1)
 
-    :param dirPath: directory path where the swc files and the corresponding _morphData folders are present.
+    :param nrns: list of swc files and the corresponding _morphData folders are present.
     :return: numpy array as defined above.
     """
-
-    nrns = [x for x in os.listdir(dirPath) if x.endswith('.swc')]
-
-    if exceptions is not None:
-        for excep in exceptions:
-            nrns.remove(excep)
 
     nrnData = np.zeros([10, len(nrns)])
 
     for nrnInd, nrn in enumerate(nrns):
 
-        jsonDict = getJSONDict(os.path.join(dirPath, nrn.rstrip('.swc') + '_morphData'))
+        morphDir = nrn[:-4] + '_morphData'
+        if not os.path.isdir(morphDir):
+            print('Morphometrics Folder not found. Creating it...')
+            subprocess.call(['python', 'neuronProfiler.py', nrn])
+
+        jsonDict = getJSONDict(morphDir)
 
         nrnData[:7, nrnInd] = [jsonDict['scalarMeasurements']['width'],
-                              jsonDict['scalarMeasurements']['height'],
-                              jsonDict['scalarMeasurements']['depth'],
-                              jsonDict['scalarMeasurements']['length'],
-                              jsonDict['scalarMeasurements']['volume'],
-                              jsonDict['scalarMeasurements']['surface'],
-                              jsonDict['scalarMeasurements']['nbifs']]
+                               jsonDict['scalarMeasurements']['height'],
+                               jsonDict['scalarMeasurements']['depth'],
+                               jsonDict['scalarMeasurements']['length'],
+                               jsonDict['scalarMeasurements']['volume'],
+                               jsonDict['scalarMeasurements']['surface'],
+                               jsonDict['scalarMeasurements']['nbifs']]
 
         nrnData[7:, nrnInd] = jsonDict['vectorMeasurements']['pcaStds']
 
     return nrnData
 
 
-def plotDataMatrix(fig, dataMatrix, abcissaValue, yLabels, xlims):
+def plotDataMatrix(fig, dataMatrix, abcissaValue, yLabels, xlims, cols):
 
     dataShape = np.shape(dataMatrix)
     nMetrics = dataShape[0]
@@ -62,7 +61,9 @@ def plotDataMatrix(fig, dataMatrix, abcissaValue, yLabels, xlims):
         nNrns = dataShape[1]
         plt.subplot(nRows, nCols, subplotInd)
 
-        plt.plot([abcissaValue] * nNrns, dataMatrix[metricInd, :], 'bo', ms=5, mfc='b')
+        for nrnInd in range(nNrns):
+            plt.plot(abcissaValue, dataMatrix[metricInd, nrnInd], marker='o', \
+                     color=cols[nrnInd], ms=5, mfc=cols[nrnInd])
         plt.ylabel(yLabels[metricInd])
         plt.xlim(xlims)
         plt.ticklabel_format(style='sci', scilimits=(-2, 3), axis='y')
@@ -85,9 +86,30 @@ def addMetricToPlot(fig, nRows, nCols, subplotInd, data, abcissaValue, colour, x
 
 
 
-foragerSWCPath = '/home/ajay/PowerFolders/GinJangNDB_Upload/SigenSegmentations/Results/GoodSamplesDLInt1/forager'
-newlyEmergedSWCPath = os.path.join('/home/ajay/PowerFolders/GinJangNDB_Upload/SigenSegmentations/Results',
-                                   'GoodSamplesDLInt1', 'newlyEmerged')
+foragerSWCPath = 'swcFiles/GoodSamplesDLInt1_v2/forager'
+
+foragerNrns = ['HB130313-4NS_3ptSoma_FSTD.swc',
+               'HB130322-1NS_3ptSoma_FSTD.swc',
+               'HB130408-1NS_3ptSoma_FSTD.swc',
+               'HB130425-1NS_3ptSoma_FSTD.swc',
+               'HB130501-2NS_3ptSoma_FSTD.swc',
+               # 'HB060607-2NS/HB060607-2NS_3ptSoma.swc'
+]
+
+foragerSWCs = [os.path.join(foragerSWCPath, x) for x in foragerNrns]
+
+newlyEmergedSWCPath = 'swcFiles/GoodSamplesDLInt1_v2/newlyEmerged'
+
+newlyEmergedNrns = ['HB130523-3NS_3ptSoma_USTD.swc',
+                    'HB130605-1NS_3ptSoma_USTD.swc',
+                    'HB130605-2NS_3ptSoma_USTD.swc'
+]
+
+
+newlyEmergedSWCs = [os.path.join(newlyEmergedSWCPath, x) for x in newlyEmergedNrns]
+
+
+
 
 measureLabels = ['Width', 'Height', 'Depth', 'Total Length', 'Total Volume',
                  'Total Surface', 'Total # of Bifurcations', 'Std along PCA directions']
@@ -98,17 +120,18 @@ measureUnits = ['micrometer', 'micrometer', 'micrometer', 'micrometer',
 fig = plt.figure()
 plt.show(block=False)
 
-# foragerScalarData = getScalarData(foragerSWCPath, ['HB130408-1NS.swc'])
 
-foragerScalarData = getScalarData(foragerSWCPath)
+foragerScalarData = getScalarData(foragerSWCs)
 
-newlyEmergedScalarData = getScalarData(newlyEmergedSWCPath)
+newlyEmergedScalarData = getScalarData(newlyEmergedSWCs)
+
+cols = ['r', 'g', 'b', 'm', 'k', 'c']
 
 nRows, nCols = plotDataMatrix(fig, foragerScalarData[:8, :], 1, [x + '(' + y + ')' for x, y in zip(measureLabels,
-                                                                                    measureUnits)], [-0.5, 1.5])
+                                                                                    measureUnits)], [-0.5, 1.5], cols)
 
 plotDataMatrix(fig, newlyEmergedScalarData[:8, :], 0, [x + '(' + y + ')' for x, y in zip(measureLabels, measureUnits)],
-                                                                                                    [-0.5, 1.5])
+                                                                                                    [-0.5, 1.5], cols)
 
 addMetricToPlot(fig, nRows, nCols, 8, foragerScalarData[8, :], 1, 'r', [-0.5, 1.5])
 addMetricToPlot(fig, nRows, nCols, 8, foragerScalarData[9, :], 1, 'g', [-0.5, 1.5])

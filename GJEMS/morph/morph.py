@@ -5,7 +5,7 @@ from math import pi as PI
 
 import matplotlib.pyplot as plt
 import numpy as np
-from mpl_toolkits.mplot3d import Axes3D
+import neuron as nrn
 
 from GJEMS.morph.morphImport import MorphImport, SubTreeWriter
 
@@ -47,11 +47,9 @@ def getRotMatWithStartTargetVector(start, target):
 
 #***********************************************************************************************************************
 
-def plotPoints3D(xyz, pltStr='x-r'):
+def plotPoints3D(fig, xyz, pltStr='x-r', subplot=111):
 
-    fig = plt.figure()
-    plt.show(block=False)
-    ax = fig.add_subplot(111, projection='3d')
+    ax = fig.add_subplot(subplot, projection='3d')
     if xyz is not None:
         xyz = np.asarray(xyz)
         ax.plot(xyz[:,0], xyz[:,1], xyz[:,2], pltStr)
@@ -96,6 +94,11 @@ class BasicMorph(MorphImport):
 
         MorphImport.__init__(self, morphFile=morphFile)
 
+        for sec in self.allsec.values():
+            sec.push()
+            sec.nseg = int(nrn.h.n3d()) - 1
+            nrn.h.pop_section()
+
         if initDists:
             self.initDistances()
 
@@ -107,37 +110,88 @@ class BasicMorph(MorphImport):
         theta = math.acos(pt[2] / r)
         phi = math.atan(pt[1] / pt[0])
 
-        return r, theta, phi
+        return [r, theta, phi]
 
     #*****************************************************************************************************************
 
-    def getTipSperical(self):
+    def polar2rect3D1Pt(self, pt):
+
+        x = pt[0] * math.sin(pt[1] * math.cos(pt[2]))
+        y = pt[0] * math.sin(pt[1] * math.sin(pt[2]))
+        z = pt[0] * math.cos(pt[1])
+
+        return [x, y, z]
+
+    #*****************************************************************************************************************
+
+    def getTipSpherical(self):
 
         tipSpherical = []
 
-        for secPtr in self.tipPtrs:
+        for secPtr in self.tipPtrs.values():
 
-            xyzd = self.getSectionxyzd(secPtr)
+            if secPtr.sec.nseg > 2:
 
-            tipSpherical.append(self.rect2polar3D1Pt(xyzd[len(xyzd) - 1][:3]))
+                xyzr = self.getSectionxyzr(secPtr)
+
+                tipSpherical.append(self.rect2polar3D1Pt(xyzr[len(xyzr) - 1][:3]))
 
         return np.array(tipSpherical)
 
     #*****************************************************************************************************************
 
-    def getTipUV(self):
+    def getTipUVOpenX(self):
 
         tipUV = []
+        actualRadii = []
 
-        for secPtr in self.tipPtrs:
+        for secPtr in self.tipPtrs.values():
 
-            xyzd = self.getSectionxyzd(secPtr)
+            if secPtr.sec.nseg > 2:
 
-            tipUV.append(self.rect2UV1Pt(xyzd[-1][:3]))
+                xyzr = self.getSectionxyzr(secPtr)
 
-        return np.array(tipUV)
+                tipUV.append(self.rect2UV1Pt(xyzr[-1][:3]))
+                actualRadii.append(np.linalg.norm(xyzr[-1][:3]))
+
+        return [tipUV, actualRadii]
 
     #*****************************************************************************************************************
+
+    def getTipUVOpenY(self):
+
+        tipUV = []
+        actualRadii = []
+
+        for secPtr in self.tipPtrs.values():
+
+            if secPtr.sec.nseg > 2:
+
+                xyzr = self.getSectionxyzr(secPtr)
+                rotXYZ = np.hstack((rotatePts2D(xyzr[-1][:2], PI / 2), xyzr[-1][2]))
+
+                tipUV.append(self.rect2UV1Pt(rotXYZ))
+                actualRadii.append(np.linalg.norm(xyzr[-1][:3]))
+
+        return [tipUV, actualRadii]
+
+    #*****************************************************************************************************************
+
+    def getTipXYZ(self):
+
+        tipXYZ = []
+
+        for secPtr in self.tipPtrs.values():
+
+            if secPtr.sec.nseg > 2:
+
+                xyzr = self.getSectionxyzr(secPtr)
+                tipXYZ.append(xyzr[-1][:3])
+
+        return tipXYZ
+
+    #****************************************************************************************************************
+
 
     def rect2UV1Pt(self, rectCoor):
         '''
@@ -146,7 +200,7 @@ class BasicMorph(MorphImport):
         :return:
         '''
 
-        unitVector = [x / math.sqrt(np.dot(rectCoor, rectCoor)) for x in rectCoor]
+        unitVector = rectCoor / np.linalg.norm(rectCoor)
 
         u = 0.5 + math.atan2(unitVector[2], unitVector[0]) / 2 / math.pi
 
@@ -207,22 +261,22 @@ class BasicMorph(MorphImport):
 
         for secPtr in reversed(activeZoneSectionPtrs[0][1:]):
 
-            xyzds = self.getSectionxyzd(secPtr)
+            xyzrs = self.getSectionxyzr(secPtr)
 
-            for xyzd in reversed(xyzds[1:]):
-                azPoints.append(xyzd[:3])
-                azDiam.append(xyzd[3])
+            for xyzr in reversed(xyzrs[1:]):
+                azPoints.append(xyzr[:3])
+                azDiam.append(xyzr[3])
 
-        azPoints.append(self.getSectionxyzd(self.rootPtr)[0][:3])
-        azDiam.append(self.getSectionxyzd(self.rootPtr)[0][3])
+        azPoints.append(self.getSectionxyzr(self.rootPtr)[0][:3])
+        azDiam.append(self.getSectionxyzr(self.rootPtr)[0][3])
 
         for secPtr in activeZoneSectionPtrs[1][1:]:
 
-            xyzds = self.getSectionxyzd(secPtr)
+            xyzrs = self.getSectionxyzr(secPtr)
 
-            for xyzd in xyzds[1:]:
-                azPoints.append(xyzd[:3])
-                azDiam.append(xyzd[3])
+            for xyzr in xyzrs[1:]:
+                azPoints.append(xyzr[:3])
+                azDiam.append(xyzr[3])
 
         return np.asarray(azPoints), azDiam
 
@@ -241,10 +295,7 @@ class BasicMorph(MorphImport):
         projMatrix = A * ATAinv * A.T
         ptsInPlane = np.asarray(np.dot(projMatrix, centeredPoints.T).T)
         ptsIn2D = np.asarray(np.dot(A.T, centeredPoints.T).T)
-        # from math import atan2, cos, sin
-        # theta = atan2(np.mean(ptsIn2D[:, 1]), -np.mean(ptsIn2D[:, 0]))
-        # rotMatrix = np.asarray([[cos(theta), -sin(theta)], [sin(theta), cos(theta)]])
-        # ptsIn2D = np.dot(rotMatrix, ptsIn2D.T).T
+
         return ptsInPlane + mu, ptsIn2D, evecs, svals
 
     #*******************************************************************************************************************
@@ -267,7 +318,7 @@ class BasicMorph(MorphImport):
 
     #*******************************************************************************************************************
 
-    def getStandardizationFunction(self):
+    def getStdFunctionPCA(self):
 
         azSecPtrs = self.getActiveZoneSectionPtrs()
         azSecPts, azDiam = self.getActiveZonePoints(azSecPtrs)
@@ -277,28 +328,15 @@ class BasicMorph(MorphImport):
         azPointsPCARot = rotatePts3D(azSecPts, rotMatrix)
         azSecPts2DRot = rotatePts2D(azPoints2D, bestTheta)
 
-        #The rotation matrix is defined assuming origin at the mean point of the AZ points. So, the whole neuron must
-        #be moved, so that the the origin is at the mean point of the AZ points.
+
         AZMean = np.mean(azSecPts, axis=0)
         allPts = self.getAllPts()
-        nrnMean = np.mean(allPts, axis=0)
-        #After applying the two rotations, final adjustments to bring the apex of the parabola to (0, 0, 0)
+
 
         actualUApex = np.hstack((rotatePts2D([xShift, min(azSecPts2DRot[:, 1])], -bestTheta), 0))
         actualUApex = rotatePts3D(actualUApex, rotMatrix.T) + AZMean
         rotMatrix1 = self.getPCARotMatrix(allPts - actualUApex, center=False)
 
-
-        # def standardize(pts, rotMatrix=rotMatrix, bestTheta=bestTheta, xyzShift1=nrnMean, xyzShift2=rotUMean):
-        #
-        #     pts -= xyzShift1
-        #     azPtsRotPCA = rotatePts3D(pts, rotMatrix)
-        #     azPtsStandard = np.zeros(np.shape(azPtsRotPCA))
-        #     azPtsStandard[:, 2] = azPtsRotPCA[:, 2]
-        #     azPtsStandard[:, :2] = rotatePts2D(azPtsRotPCA[:, :2], bestTheta)
-        #     azPtsStandard -= xyzShift2
-        #
-        #     return azPtsStandard
 
         def standardize(pts, xyzShift=actualUApex, rotMatrix=rotMatrix1):
 
@@ -309,7 +347,63 @@ class BasicMorph(MorphImport):
 
     #*******************************************************************************************************************
 
+    def getStdFunctionPCA1(self):
 
+        azSecPtrs = self.getActiveZoneSectionPtrs()
+        azSecPts, azDiam = self.getActiveZonePoints(azSecPtrs)
+        rotMatrix = self.getPCARotMatrix(azSecPts)
+        azPointsInPlane, azPoints2D, evecs, svals = self.project2plane(azSecPts)
+        bestTheta, ymin, xShift, err = self.symmetrySearchByRotation(azPoints2D)
+        azPointsPCARot = rotatePts3D(azSecPts, rotMatrix)
+        azSecPts2DRot = rotatePts2D(azPoints2D, bestTheta)
+
+
+        AZMean = np.mean(azSecPts, axis=0)
+        allPts = self.getAllPts()
+
+
+        actualUApex = np.hstack((rotatePts2D([xShift, min(azSecPts2DRot[:, 1])], -bestTheta), 0))
+        actualUApex = rotatePts3D(actualUApex, rotMatrix.T) + AZMean
+        evecs, evals, v = np.linalg.svd((allPts - actualUApex).T, full_matrices=False)
+        rotMatrix1 = getRotMatWithStartTargetVector(evecs[:, 0], [1, 0, 0])
+
+
+        def standardize(pts, xyzShift=actualUApex, rotMatrix=rotMatrix1):
+
+            pts -= xyzShift
+            return rotatePts3D(pts, rotMatrix)
+
+        return standardize
+
+    #*******************************************************************************************************************
+
+    def getStdFunctionUAlign(self):
+
+        azSecPtrs = self.getActiveZoneSectionPtrs()
+        azSecPts, azDiam = self.getActiveZonePoints(azSecPtrs)
+        rotMatrix = self.getPCARotMatrix(azSecPts)
+        azPointsInPlane, azPoints2D, evecs, svals = self.project2plane(azSecPts)
+        bestTheta, ymin, xShift, err = self.symmetrySearchByRotation(azPoints2D)
+
+        azSecPts2DRot = rotatePts2D(azPoints2D, bestTheta)
+
+        AZMean = np.mean(azSecPts, axis=0)
+        rotUMean = np.asarray([xShift, min(azSecPts2DRot[:, 1]), 0])
+
+
+        def standardize(pts, rotMatrix=rotMatrix, bestTheta=bestTheta, xyzShift1=AZMean, xyzShift2=rotUMean):
+
+            pts -= xyzShift1
+            azPtsRotPCA = rotatePts3D(pts, rotMatrix)
+            azPtsStandard = np.zeros(np.shape(azPtsRotPCA))
+            azPtsStandard[:, 2] = azPtsRotPCA[:, 2]
+            azPtsStandard[:, :2] = rotatePts2D(azPtsRotPCA[:, :2], bestTheta)
+            azPtsStandard -= xyzShift2
+            azPtsStandard[:, :2] = rotatePts2D(azPtsStandard[:, :2], -PI / 2)
+
+            return azPtsStandard
+
+        return standardize
 
     #*******************************************************************************************************************
     def symmetrySearchByRotation(self, pts):
@@ -405,5 +499,74 @@ class BasicMorph(MorphImport):
 
         return thetas[bestInd], ymins[bestInd], xShifts[bestInd], diffs[bestInd]
 
-#***********************************************************************************************************************
+    #*******************************************************************************************************************
 
+    def daimDistPlot(self):
+
+        self.initDistances()
+
+        fig = plt.figure()
+        plt.show(block=False)
+        ch='y'
+        while not ch == 'q':
+
+            ch = raw_input('Enter Dend number(\'q\' to quit):')
+
+            chSec = self.allsec['Cell[0].dend[' + str(int(ch)) + ']']
+            presentPtr = self.getPtr(chSec)
+
+            diams = []
+            dists = []
+            sects = []
+            while not presentPtr.root().sec.name() == presentPtr.sec.name():
+
+                sects.append(presentPtr.sec)
+                dists.extend([x for x in reversed(self.secdists[presentPtr.sec.name()])])
+                diams.extend([x[3] for x in reversed(self.getSectionxyzr(presentPtr))])
+
+                presentPtr = self.getPtr(presentPtr.parent().sec)
+
+            plt.cla()
+            # plt.plot(dists[:-1], np.diff(diams) / np.diff(dists), 'b')
+            plt.plot(dists, diams, 'b')
+            plt.title(chSec.name())
+            plt.xlabel('EucDistance(um)')
+            plt.ylabel('Diameter(um)')
+            plt.draw()
+            print [x.name()[13:-1] for x in sects]
+
+            import ipdb
+            ipdb.set_trace()
+
+        plt.draw()
+        return fig
+    #*******************************************************************************************************************
+
+    def initDistances(self):
+
+        self.secdists = {}
+
+        for secName, sec in self.allsec.iteritems():
+            self.secdists[secName] = []
+            sec.push()
+            for pointInd in range(sec.nseg):
+                self.secdists[secName].append(nrn.h.distance(pointInd * 1.0 / sec.nseg))
+            nrn.h.pop_section()
+
+    #*******************************************************************************************************************
+
+    def getMeasure(self, f):
+
+        measureDict = {}
+
+        for secName, sec in self.allsec.iteritems():
+
+            measureDict[secName] = []
+
+            for ind in range(sec.nseg):
+
+                measureDict.append(f(sec))
+
+        return measureDict
+
+#***********************************************************************************************************************

@@ -2,17 +2,22 @@ from LMIO.wrapper import *
 import matplotlib.pyplot as plt
 from easygui import fileopenbox
 import numpy as np
+import sys
 
-swcFile = fileopenbox(msg='SWC file with three point soma', filetypes=['*.swc'])
+# swcFile = fileopenbox(msg='SWC file with three point soma', filetypes=['*.swc'])
+assert len(sys.argv) == 2, 'Only one argument, the path of the swcfile expected, ' + str(len(sys.argv)) + 'found'
+swcFile = sys.argv[1]
 swcFiles = [swcFile]
+
 
 ##*********************************************************************************************************************
 ## Usage Example getMeasureDistribution
-##*********************************************************************************************************************
-LMOutput = getMeasureDistribution(['Bif_ampl_local'], swcFiles, nBins=100)
+# ##*********************************************************************************************************************
+LMOutput = getMeasureDistribution(['Rall_Power'], swcFiles, nBins=100)
 plt.figure()
 
-plt.plot(LMOutput[0]['measure1BinCentres'][0], np.cumsum(LMOutput[0]['measure1BinCounts'][0]), 'ro-', mfc='r', ms=5)
+# plt.plot(LMOutput[0]['measure1BinCentres'][0], np.cumsum(LMOutput[0]['measure1BinCounts'][0]), 'ro-', mfc='r', ms=5)
+plt.plot(LMOutput[0]['measure1BinCentres'][0], LMOutput[0]['measure1BinCounts'][0], 'ro-', mfc='r', ms=5)
 plt.draw()
 plt.show(block=False)
 
@@ -21,8 +26,9 @@ plt.show(block=False)
 ##*********************************************************************************************************************
 ## # Usage Example getMeasure
 ##*********************************************************************************************************************
-# LMOutput = getMeasure(['Surface'], swcFiles)
-# print 'Neuron Surface Area is ' + str(LMOutput[0]['WholeCellMeasures'][0][4])
+# LMOutput = getMeasure(['EucDistance'], swcFiles)
+# # print 'Neuron Surface Area is ' + str(LMOutput[0]['WholeCellMeasures'][0][4])
+# print LMOutput[0]['WholeCellMeasures'][0]
 
 ##*********************************************************************************************************************
 

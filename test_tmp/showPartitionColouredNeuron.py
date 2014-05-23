@@ -5,9 +5,9 @@ import sys
 import os
 
 # testMorphFile = 'swcFiles/HB060602_3ptSoma_subTrees/HB060602_3ptSoma_db.swc'
-testMorphFile = fileopenbox(msg='SWC file with three point soma', filetypes=['*.swc'])
-# assert len(sys.argv) == 2, 'Only one argument, the path of the swcfile expected, ' + str(len(sys.argv)) + 'found'
-# testMorphFile = os.path.abspath(sys.argv[1])
+# testMorphFile = fileopenbox(msg='SWC file with three point soma', filetypes=['*.swc'])
+assert len(sys.argv) == 2, 'Only one argument, the path of the swcfile expected, ' + str(len(sys.argv)) + 'found'
+testMorphFile = os.path.abspath(sys.argv[1])
 testNrn = MorphImport(testMorphFile)
 testNrn.initRegionIndices(testMorphFile.rstrip('.swc') + '.marks')
 from neuron import gui
@@ -17,3 +17,11 @@ fig.exec_menu('Shape Plot')
 fig.scale(0, 3)
 fig.show(0)
 fig.flush()
+
+ch = raw_input('Is the Paritioning Correct<y/(n)>?')
+
+if not ch == 'y':
+    sys.exit(1)
+else:
+    sys.exit()
+

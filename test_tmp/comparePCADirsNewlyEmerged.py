@@ -17,26 +17,24 @@ def add3Vecs3D(ax, points, colour, scale=1):
     plt.draw()
     plt.draw()
 
-# swc1 = 'swcFiles/GoodSamplesDLInt1_v2/forager/' \
-#        + 'HB130425-1NS_3ptSoma_STD.swc'
+newlyEmergedSWCPath = 'swcFiles/GoodSamplesDLInt1_v2/newlyEmerged'
 
-swc1 = 'swcFiles/GoodSamplesDLInt1_v2/forager/' \
-       + 'HB130313-4NS_3ptSoma_STD.swc'
+newlyEmergedNrns = ['HB130523-3NS_3ptSoma_USTD.swc',
+                    'HB130605-1NS_3ptSoma_USTD.swc',
+                    'HB130605-2NS_3ptSoma_USTD.swc'
+]
+cols = ['r', 'g', 'b', 'm', 'k', 'c', 'r', 'g']
 
-swc2 = 'swcFiles/GoodSamplesDLInt1_v2/forager/' \
-       + 'HB130322-1NS_3ptSoma_STD.swc'
-
-# swc2 = 'swcFiles/HB060602_3ptSoma_STD.swc'
-
-evec1, stds = getPCADetails(swc1, center=False)
-evec2, stds = getPCADetails(swc2, center=False)
-
+newlyEmergedSWCs = [os.path.join(newlyEmergedSWCPath, x) for x in newlyEmergedNrns]
 
 fig = plt.figure()
 plt.show(block=False)
 ax = fig.add_subplot(111, projection='3d')
 
-add3Vecs3D(ax, evec1.T, 'r')
-add3Vecs3D(ax, evec2.T, 'g')
+for swcInd, swc in enumerate(newlyEmergedSWCs):
 
+    evecs, std = getPCADetails(swc, center=False)
+    add3Vecs3D(ax, evecs.T, cols[swcInd])
+
+plt.draw()
 

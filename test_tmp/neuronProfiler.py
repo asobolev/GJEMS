@@ -82,23 +82,23 @@ with open(swcfName.rstrip('.swc') + '.log', 'w') as morphLogFile:
         shutil.rmtree(dirName)
 
     os.mkdir(dirName)
-
-    if objExists:
-        shutil.move(os.path.join(swcDir, 'neuron.obj'), os.path.join(dirName,'neuron.obj'))
-
-    #*******************************************************************************************************************
-    #Copy the blender template file, append the necessary lines, and run it to generate the OBJ file, if necessary.
-
-    if not objExists:
-        shutil.copy('blenderCodeTemplate.py','blenderCode.py')
-
-        with open('blenderCode.py','a') as blenderCodeFile:
-
-            blenderCodeFile.write('blenderSWC = BlenderSWCImporter(\'' + swcfName + '\')\n')
-            blenderCodeFile.write('blenderSWC.export2Obj(\'' + os.path.join(dirName,'neuron.obj') + '\')')
-
-        subprocess.call(['blender', '--background', '--python', 'blenderCode.py'], stdout=morphLogFile, stderr=morphLogFile)
-        os.remove('blenderCode.py')
+    #
+    # if objExists:
+    #     shutil.move(os.path.join(swcDir, 'neuron.obj'), os.path.join(dirName,'neuron.obj'))
+    #
+    # #*******************************************************************************************************************
+    # #Copy the blender template file, append the necessary lines, and run it to generate the OBJ file, if necessary.
+    #
+    # if not objExists:
+    #     shutil.copy('blenderCodeTemplate.py','blenderCode.py')
+    #
+    #     with open('blenderCode.py','a') as blenderCodeFile:
+    #
+    #         blenderCodeFile.write('blenderSWC = BlenderSWCImporter(\'' + swcfName + '\')\n')
+    #         blenderCodeFile.write('blenderSWC.export2Obj(\'' + os.path.join(dirName,'neuron.obj') + '\')')
+    #
+    #     subprocess.call(['blender', '--background', '--python', 'blenderCode.py'], stdout=morphLogFile, stderr=morphLogFile)
+    #     os.remove('blenderCode.py')
 
     #*******************************************************************************************************************
 

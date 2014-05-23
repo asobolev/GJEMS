@@ -55,8 +55,9 @@ foragerNrns = ['HB130313-4NS_3ptSoma_STD.swc',
 # newlyEmergedNrns = ['HB130523-3NS_STD.swc']
 
 
-
-ax = plotPoints3D(None)
+fig = plt.figure()
+plt.show(block=False)
+ax = plotPoints3D(fig, None)
 
 for swc in foragerNrns:
 

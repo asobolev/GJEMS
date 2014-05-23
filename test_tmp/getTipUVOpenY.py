@@ -1,11 +1,11 @@
-from neuronvisio.controls import Controls
 import sys
+import json
+
+
 from GJEMS.morph.morph import BasicMorph
+
 
 assert len(sys.argv) == 2, 'Only one argument, the path of the swcfile expected, ' + str(len(sys.argv)) + 'found'
 swcfName = sys.argv[1]
 testMorph = BasicMorph(swcfName)
-
-#testMorph = BasicMorph('../swcFiles/HB130313-4NS_3ptSoma.swc')
-
-contols = Controls()
+print('startJSON' + json.dumps(testMorph.getTipUVOpenY()))

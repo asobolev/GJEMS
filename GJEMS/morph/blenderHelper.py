@@ -26,6 +26,8 @@ class BlenderSWCImporter:
         """
 
         swcPointData = {}
+        extraCol = {}
+
         with open(self.swcFName, 'r') as fle:
             line = fle.readline()
             while not line == '':
@@ -33,14 +35,16 @@ class BlenderSWCImporter:
                 if not line[0] == '#':
                     entries = line.split(' ')
                     swcPointData[float(entries[0])] = [float(x) for x in entries[2:7]]
+                    nCols = len(self.colMap)
+                    extraCol[int(entries[0])] = max(min(int(entries[7]), nCols - 1), 0)
 
                 line = fle.readline()
 
-        return swcPointData
+        return swcPointData, extraCol
 
     #*******************************************************************************************************************
 
-    def __init__(self, swcFName, add=False, matchRootOrigin=True, swcData=None):
+    def __init__(self, swcFName, add=False, matchRootOrigin=True, swcData=None, colMap=None):
 
         if not add == True:
             #Remove the default objects in the blender scene.
@@ -51,17 +55,18 @@ class BlenderSWCImporter:
 
         self.swcFName = swcFName
         self.swcName = os.path.split(swcFName)[1].rstrip('.swc')
+        self.colMap = colMap
 
         if swcData is None:
 
-            self.swcPointData = self.readSWC()
+            self.swcPointData, self.extraCol = self.readSWC()
 
         else:
 
             self.swcPointData = swcData
 
 
-        self.nCirclePoints = 16
+        self.nCirclePoints = 8
         assert self.nCirclePoints % 2 == 0, 'No of points on the circle circumference has to be even'
 
         if matchRootOrigin:
@@ -81,6 +86,7 @@ class BlenderSWCImporter:
 
         self.verts = []
         self.faces = []
+        self.faceColInds = []
         self.nBlenderCircles = 0
 
     #*******************************************************************************************************************
@@ -233,9 +239,40 @@ class BlenderSWCImporter:
 
         secFaces = self.getFaceIndices(self.vertIndexStartsPerPoint[-2], self.vertIndexStartsPerPoint[-1])
         self.faces.extend(secFaces)
+        self.faceColInds.extend([self.extraCol[int(pointInd)]] * len(secFaces))
 
     #*******************************************************************************************************************
 
+    # def getNewSection(self, pointVec, pointDiam, rootVec, rootDiam, pointInd, rootInd):
+    #
+    #     """Adds equally spaced points along the circumference of the two circles around pointVec and rootVec with diameters pointDiam and rootDiam, respectively, to self.verts. Defines faces using self.getFaceIndices() and add to self.faces.
+    #     :param pointVec: mathutils.Vector object of Blender
+    #     :param pointDiam: integer
+    #     :param rootVec: mathutils.Vector object of Blender
+    #     :param rootDiam: integer
+    #     :param pointInd: integer, index of the point in the swcfile(col 1)
+    #     :param rootInd: integer, index of the root of the point in the swcfile(col 7)
+    #     :return:
+    #     """
+    #
+    #     rootNormal = self.getNormDiffVector(pointVec, rootVec)
+    #
+    #     vertsOfRoot, refVecIPRoot = self.getCircleVerts(rootVec, rootNormal, rootDiam)
+    #
+    #
+    #     pointNormal = self.getNormDiffVector(rootVec, pointVec)
+    #
+    #     vertsOfPoint, refVecIPPoint = self.getCircleVerts(pointVec, rootNormal, pointDiam,
+    #                                                       refVecIPRoot)
+    #
+    #     vertsToReturn = vertsOfRoot[:]
+    #     vertsToReturn.extend(vertsOfPoint[:])
+    #
+    #     secFaces2Return = self.getFaceIndices(0, self.nCirclePoints)
+    #
+    #     return vertsToReturn, secFaces2Return
+
+    #*******************************************************************************************************************
     def addPointsAndFaces(self, pointVec, pointDiam, pointNormal, indexOfRootPoint, refVecIP, pointInd):
         """
         Adds self.nCirclePoints number of points for the given pointVec, pointDiam and pointNormal. These point are equally spaced along the circumference of the circle at pointVec, with diameter pointDiam and in the plane perpendicular to pointNormal. Adds to self.faces, the faces between the points just defined and the points on the circle around a point whose index in the swc file(col 1) is indexOfRootPoint. Read documentation of getCircleVerts() for more of refVecIP.
@@ -254,6 +291,7 @@ class BlenderSWCImporter:
 
         secFaces = self.getFaceIndices(self.vertIndexStartsPerPoint[indexOfRootPoint], self.vertIndexStartsPerPoint[-1])
         self.faces.extend(secFaces)
+        self.faceColInds.extend([self.extraCol[int(pointInd)]] * len(secFaces))
 
     #*******************************************************************************************************************
 
@@ -285,7 +323,7 @@ class BlenderSWCImporter:
         #***************************************************************************************************************
 
         # This line can replace all the code below so that for each section, two new circles are added.
-        #   self.addNewSection(pointVec, pointDiam, rootVec, rootDiam, pointInd, rootInd)
+        #     self.addNewSection(pointVec, pointDiam, rootVec, rootDiam, pointInd, rootInd)
 
         #***************************************************************************************************************
 
@@ -319,6 +357,29 @@ class BlenderSWCImporter:
 
     #*******************************************************************************************************************
 
+    # def getSection(self, pointInd):
+    #
+    #     pointData = self.swcPointData[pointInd]
+    #     pointVec = (Vector(pointData[:3]) - self.originPoint) / self.scaleDownBy
+    #     pointDiam = pointData[3] / self.scaleDownBy
+    #
+    #     rootInd = int(pointData[4])
+    #     rootData = self.swcPointData[rootInd]
+    #     rootVec = (Vector(rootData[:3]) - self.originPoint) / self.scaleDownBy
+    #     rootDiam = rootData[3] / self.scaleDownBy
+    #
+    #     if pointVec == rootVec:
+    #         print('Warning: Points at line ' + str(pointInd) + 'and line ' + str(rootInd) +
+    #               'have the same XYZ Coordinates in file ' + self.swcName)
+    #         return None
+    #
+    #     else:
+    #
+    #         return self.getNewSection(pointVec, pointDiam, rootVec, rootDiam, pointInd, rootInd)
+
+
+    #*******************************************************************************************************************
+
     def definePoints(self):
         """
         For each point of the swc file which is not the root, adds the circles and faces that define the 3D frustrum representing the section.
@@ -333,9 +394,7 @@ class BlenderSWCImporter:
 
     #*******************************************************************************************************************
 
-
-
-    def drawInBlender(self, col):
+    def drawWholeInBlender(self, col):
         """
         Uses the defined points in self.verts and faces in self.faces to construct a 3D object in Blender
         :return:
@@ -344,12 +403,44 @@ class BlenderSWCImporter:
         nrn = bpy.data.objects.new(self.swcName, mesh)
         bpy.context.scene.objects.link(nrn)
 
-        mat = bpy.data.materials.new(self.swcName)
-        mat.diffuse_color = col
-        nrn.active_material = mat
+        if self.colMap is None:
+            mat = bpy.data.materials.new(self.swcName)
+            mat.diffuse_color = col
+            nrn.active_material = mat
+
+        else:
+
+            for col in self.colMap:
+                mat = bpy.data.materials.new(str(col))
+                mat.diffuse_color = col
+                nrn.data.materials.append(mat)
 
         mesh.from_pydata(self.verts, [], self.faces)
         mesh.update(calc_edges=True)
+
+        nrnObj = bpy.context.scene.objects[self.swcName]
+        for polygon, facColInd in zip(nrnObj.data.polygons, self.faceColInds):
+
+            polygon.material_index = facColInd
+
+
+    #*******************************************************************************************************************
+
+    # def drawSectionInBlender(self, pointInd, secVerts, secFaces, col):
+    #     """
+    #     Uses the defined points in self.verts and faces in self.faces to construct a 3D object in Blender
+    #     :return:
+    #     """
+    #     mesh = bpy.data.meshes.new(self.swcName + '_' + str(pointInd))
+    #     sec = bpy.data.objects.new(self.swcName + '_' + str(pointInd), mesh)
+    #     bpy.context.scene.objects.link(sec)
+    #
+    #     mat = bpy.data.materials.new(self.swcName + '_' + str(pointInd))
+    #     mat.diffuse_color = col
+    #     sec.active_material = mat
+    #
+    #     mesh.from_pydata(secVerts, [], secFaces)
+    #     mesh.update(calc_edges=True)
 
     #*******************************************************************************************************************
 
@@ -365,7 +456,7 @@ class BlenderSWCImporter:
         bpy.ops.export_scene.obj(filepath=fileName)
     #*******************************************************************************************************************
 
-    def importSWC(self, col=[1, 0, 0]):
+    def importWholeSWC(self, col=[1, 0, 0]):
         """
         This function imports the neuron in swcfile.
         :param fileName: Absolute path of swc file.
@@ -374,8 +465,32 @@ class BlenderSWCImporter:
         """
 
         self.definePoints()
-        self.drawInBlender(col)
-        #*******************************************************************************************************************
+        self.drawWholeInBlender(col)
+    #*******************************************************************************************************************
+    #
+    # def importSectionWiseSWC(self, col = [1, 0, 0]):
+    #
+    #     for pointInd in self.swcPointData.keys():
+    #
+    #         pointInd = int(pointInd)
+    #         if not self.swcPointData[pointInd][-1] == -1:
+    #
+    #             print(pointInd)
+    #             rtrned = self.getSection(pointInd)
+    #
+    #             if rtrned is None:
+    #                 continue
+    #
+    #             if self.colFunc is not None:
+    #                 col = self.colFunc(self.extraCols[pointInd])
+    #
+    #             self.drawSectionInBlender(pointInd, rtrned[0], rtrned[1], col)
+    #
+    # #*******************************************************************************************************************
+#***********************************************************************************************************************
+
+
+
     #To add color
     #
     #mat = bpy.data.materials.new("dorsalBranch")

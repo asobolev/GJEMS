@@ -31,6 +31,6 @@ for partLabel, col in zip(partLabels, cols):
     nrn = BlenderSWCImporter(partName, add=shouldAdd, matchRootOrigin=False)
     shouldAdd = True
     blenderNrns.append(nrn)
-    nrn.importSWC(col)
+    nrn.importWholeSWC(col)
 
 

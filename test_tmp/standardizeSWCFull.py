@@ -24,7 +24,7 @@ swcPts = swcData[:, 2:5]
 # rotMatPCA = testMorph.getPCARotMatrix(swcPts)
 # swcPts -= np.mean(swcPts, axis=0)
 # swcData[:, 2:5] = rotatePts3D(swcPts, rotMatPCA)
-standFunc = testMorph.getStandardizationFunction()
+standFunc = testMorph.getStdFunctionPCA()
 swcData[:, 2:5] = standFunc(swcData[:, 2:5])
 
 # evecs, evals, v = np.linalg.svd(swcData[:, 2:5].T, full_matrices=False)
@@ -34,9 +34,9 @@ swcData[:, 2:5] = standFunc(swcData[:, 2:5])
 # swcData[:, 2:5] = rotatePts3D(swcData[:, 2:5], smallRot)
 
 
-np.savetxt(swcfName[:swcfName.index('.')]+'_STD.swc', swcData,'%d %d %0.6f %0.6f %0.6f %0.6f %d',
+np.savetxt(swcfName[:swcfName.index('.')]+'_FSTD.swc', swcData,'%d %d %0.6f %0.6f %0.6f %0.6f %d',
             header=headr, comments='#')
 
 marksFilePath = swcfName[:-4] + '.marks'
 if os.path.isfile(marksFilePath):
-    shutil.copy(marksFilePath, swcfName[:-4] + '_STD.marks')
+    shutil.copy(marksFilePath, swcfName[:-4] + '_FSTD.marks')

@@ -2,7 +2,7 @@ import os
 from neo import Spike2IO, Segment, Block
 import quantities as qu
 import gnodeclient
-from .GNodeUpoadHelpers import *
+from GNodeUpoadHelpers import *
 import odml
 import csv
 from time import asctime
@@ -114,8 +114,8 @@ class RawDataUploader():
         recordingStartTime = max(entireVibrationSignal.t_start, entireVoltageSignal.t_start)
         recordingEndTime = min(entireVibrationSignal.t_stop, entireVoltageSignal.t_stop)
 
-        recordingStartTime = self.dataBlock[0].segments[0].eventarrays[0].times[0]
-        recordingEndTime = self.dataBlock[0].segments[0].eventarrays[0].times[1]
+        recordingStartTime = self.dataBlock.segments[0].eventarrays[0].times[0]
+        recordingEndTime = self.dataBlock.segments[0].eventarrays[0].times[1]
 
         recordingStartIndex = int((recordingStartTime - entireVoltageSignal.t_start)
                                   * entireVoltageSignal.sampling_rate)
@@ -177,19 +177,19 @@ class RawDataUploader():
 
         self.mainSec.append(expSummary)
 
-        print asctime() + 'Uploading metadata'
+        print asctime() + ' : Uploading metadata'
         secLoc = uploadNewSectionRecursive(self.GNodeSession, self.mainSec)
-        print asctime() + 'Uploading metadata Done'
+        print asctime() + ' : Uploading metadata Done'
 
-        print asctime() + 'Refreshing metadata'
+        print asctime() + ' : Refreshing metadata'
         mainSec = self.GNodeSession.get(secLoc, refresh=True, recursive=True)
-        print asctime() + 'Refreshing metadata Done'
+        print asctime() + ' : Refreshing metadata Done'
 
         self.dataBlockToUpload.section = mainSec
 
-        print asctime() + 'Uploading Data'
+        print asctime() + ' : Uploading Data'
         blkLoc = uploadNewBlockRecursive(self.GNodeSession, self.dataBlockToUpload)
-        print asctime() + 'Uploading Data Done'
+        print asctime() + ' : Uploading Data Done'
 
     #*******************************************************************************************************************
 

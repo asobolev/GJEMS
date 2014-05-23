@@ -225,7 +225,7 @@ class SimulationParameterExtracter():
                                             pOpt[0], pOpt[1])), 'g')
                 plt.title(str(1000/pOpt[1]) + 'ms')
                 plt.draw()
-                ch = 'n'
+
                 ch = raw_input('Next(n)/Quit(q):')
                 if ch == 'q':
                     break

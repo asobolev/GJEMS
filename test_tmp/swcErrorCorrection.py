@@ -45,32 +45,60 @@ headr = headr.rstrip('\n')
 
 inFile = npy.loadtxt(fName)
 
-outFile = npy.zeros([inFile.shape[0] + 2, inFile.shape[1]])
+nPts = npy.shape(inFile)[0]
+nChildPerPt = [0] * nPts
+deletePt = [False] * nPts
 
-outFile[0,:] = inFile[0, :].copy()
-outFile[0,1] = 1
+for pt in inFile:
 
-rs = inFile[0,5] #radius of one-point soma
+    if not pt[6] == -1:
+        nChildPerPt[int(pt[6]) - 1] += 1
+
+for ptInd in reversed(range(nPts)):
+
+    if (nChildPerPt[ptInd] == 0) and (nChildPerPt[int(inFile[ptInd, 6]) - 1] > 1):
+
+            deletePt[ptInd] = True
 
 
-outFile[1,:] = npy.array([2, 1, inFile[0,2], inFile[0,3]-rs, inFile[0,4], rs, 1])
-outFile[2,:] = npy.array([3, 1, inFile[0,2], inFile[0,3]+rs, inFile[0,4], rs, 1])
-
-inParentVals = inFile[:,6]
 
 
 
-for lineId in range(1,inFile.shape[0]):
-  presLine = inFile[lineId,:].copy()
 
-  if not presLine[6] == 1:	#points connected to the original single-point soma remains connected to same original point.
-    presLine[6] += 2
+outFile = inFile[0, :].copy()
+outFile[1] = 1
 
-  if not (presLine[1] == 3):
-    presLine[1] = 3
+rs = inFile[0, 5] #radius of one-point soma
 
-  presLine[0] += 2
-  outFile[lineId+2,:] = presLine
+
+outFile = npy.vstack((outFile, npy.array([2, 1, inFile[0, 2], inFile[0, 3] - rs, inFile[0, 4], rs, 1])))
+outFile = npy.vstack((outFile, npy.array([3, 1, inFile[0, 2], inFile[0, 3] + rs, inFile[0, 4], rs, 1])))
+
+inParentVals = inFile[:, 6]
+
+newIndices = npy.zeros([nPts, 1])
+newIndices[0] = 1
+ptsDone = 3
+
+for lineId in range(1, inFile.shape[0]):
+
+    if not deletePt[lineId]:
+
+        presLine = inFile[lineId, :].copy()
+
+        newIndices[lineId] = ptsDone + 1
+
+        presLine[0] = ptsDone + 1
+
+        if not presLine[6] == 1:	#points connected to the original single-point soma remains connected to same original point.
+            presLine[6] = newIndices[int(presLine[0]) - 1]
+
+        if not (presLine[1] == 3):
+            presLine[1] = 3
+
+        outFile = npy.vstack((outFile, presLine))
+
+        ptsDone += 1
 
 npy.savetxt(fName[:fName.index('.')]+'_3ptSoma.swc',outFile,'%d %d %0.3f %0.3f %0.3f %0.3f %d',
             header=headr, comments='#')

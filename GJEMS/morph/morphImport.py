@@ -9,9 +9,10 @@ class SubTreeWriter:
     swcFileList = []
     pointsDone = 0
 
-    def __init__(self, secPtr):
+    def __init__(self, secPtr, extraColFunc=None):
 
         self.rootSecPtr = secPtr
+        self.extraColFunc = extraColFunc
 
     #*******************************************************************************************************************
 
@@ -23,40 +24,47 @@ class SubTreeWriter:
         return ptr
 
     #*******************************************************************************************************************
-    def getSectionxyzd(self, secPtr):
+    def getSectionxyzr(self, secPtr):
 
-        xyzd = []
+        xyzr = []
         secPtr.sec.push()
         for pointInd in range(int(nrn.h.n3d())):
-            temp = [nrn.h.x3d(pointInd), nrn.h.y3d(pointInd), nrn.h.z3d(pointInd), nrn.h.diam3d(pointInd)]
-            xyzd.append(temp)
+            temp = [nrn.h.x3d(pointInd), nrn.h.y3d(pointInd), nrn.h.z3d(pointInd), 0.5 * nrn.h.diam3d(pointInd)]
+            xyzr.append(temp)
         nrn.h.pop_section()
-        return xyzd
+        return xyzr
 
     #*******************************************************************************************************************
 
-    def addLine(self, xyzd, pointType, parent):
+    def addLine(self, xyzr, pointType, parent, secPtr):
 
         self.pointsDone += 1
 
         swcLine = [self.pointsDone, pointType]
-        swcLine.extend(xyzd)
+        swcLine.extend(xyzr)
         swcLine.append(parent)
+
+        if self.extraColFunc is not None:
+
+            extraCols = self.extraColFunc(secPtr)
+            swcLine.extend(extraCols)
+
+
         self.swcFileList.append(swcLine)
 
     #*******************************************************************************************************************
 
     def addSubTreeSWC(self, parent, secPtr):
 
-        xyzd = self.getSectionxyzd(secPtr)
+        xyzr = self.getSectionxyzr(secPtr)
 
-        for pointInd in range(len(xyzd)):
+        for pointInd in range(len(xyzr) - 1):
 
-            # if the present point is the origin of subtree, it is defined a three point soma
+            # if the present point is the origin of subtree, it is defined as a three point soma
 
             if (parent == -1) and (pointInd == 0):
 
-                somaXYZD = xyzd[0]
+                somaXYZD = xyzr[0]
 
                 rs = somaXYZD[3]
 
@@ -66,17 +74,17 @@ class SubTreeWriter:
                 soma2XYZD = [x for x in somaXYZD]
                 soma2XYZD[1] -= rs
 
-                self.addLine(somaXYZD, 1, -1)
+                self.addLine(somaXYZD, 1, -1, secPtr)
 
-                self.addLine(soma1XYZD, 1, 1)
+                self.addLine(soma1XYZD, 1, 1, secPtr)
 
-                self.addLine(soma2XYZD, 1, 1)
+                self.addLine(soma2XYZD, 1, 1, secPtr)
 
                 parent = 1
 
             else:
 
-                self.addLine(xyzd[pointInd], 3, parent)
+                self.addLine(xyzr[pointInd], 3, parent, secPtr)
 
                 #Note: present value of self.pointsDone == parents column 1 entry
                 parent = self.pointsDone
@@ -100,7 +108,15 @@ class SubTreeWriter:
         self.swcFileList = []
         self.pointsDone = 0
         self.addSubTreeSWC(-1, self.rootSecPtr)
-        npy.savetxt(fName, self.swcFileList, '%d %d %0.12f %0.12f %0.12f %0.12f %d')
+        formatString = '%d %d %0.3f %0.3f %0.3f %0.3f %d'
+
+        if self.extraColFunc is not None:
+
+            extraColsSample = self.extraColFunc(self.rootSecPtr)
+            for ind in range(len(extraColsSample)):
+                formatString += ' %d'
+
+        npy.savetxt(fName, self.swcFileList, formatString)
 
 
     #*******************************************************************************************************************
@@ -112,10 +128,8 @@ class MorphImport:
     morphFileName = ''
     rootPtr = None
     nTips = 0
-    tipPtrs = []
     cell = None
     totalSections = 0
-    allsec = []
     nrnT = nrn.h.Vector()
     regionMarkSecs = None
     branchPointSec = None
@@ -149,27 +163,27 @@ class MorphImport:
 
     #*******************************************************************************************************************
 
-    def getSectionxyzd(self, secPtr):
+    def getSectionxyzr(self, secPtr):
 
-        xyzd = []
+        xyzr = []
         secPtr.sec.push()
         for pointInd in range(int(nrn.h.n3d())):
-            temp = [nrn.h.x3d(pointInd), nrn.h.y3d(pointInd), nrn.h.z3d(pointInd), nrn.h.diam3d(pointInd)]
-            xyzd.append(temp)
+            temp = [nrn.h.x3d(pointInd), nrn.h.y3d(pointInd), nrn.h.z3d(pointInd), 0.5 * nrn.h.diam3d(pointInd)]
+            xyzr.append(temp)
         nrn.h.pop_section()
-        return xyzd
+        return xyzr
 
     #*******************************************************************************************************************
 
     def getTipPtrs(self, presentPtr):
 
         self.totalSections += 1
-        self.allsec.append(presentPtr.sec)
+        self.allsec[presentPtr.sec.name()] = presentPtr.sec
 
         if presentPtr.nchild() == 0:
 
             self.nTips += 1
-            self.tipPtrs.append(presentPtr)
+            self.tipPtrs[presentPtr.sec.name()] = presentPtr
             return
 
         else:
@@ -203,7 +217,7 @@ class MorphImport:
 
         nrn.load_mechanisms(os.path.join(self.packagePrefix, 'etc'))
 
-        for sec in self.allsec:
+        for sec in self.allsec.values():
             sec.insert('regionInd')
 
         marksFle = open(marksFile, 'r')
@@ -224,7 +238,7 @@ class MorphImport:
         self.regionMarkSecs = [0] * len(self.subTreesLabels)
         regionMarksDone = 0
 
-        for sec in self.allsec:
+        for secName, sec in self.allsec.iteritems():
 
             secName = sec.name()
             if secName == branchPointMark:
@@ -259,22 +273,10 @@ class MorphImport:
             regionSWCwriter.write(subTreeName)
 
     #*******************************************************************************************************************
-
-    def initDistances(self):
-
-        self.sec0dists = []
-        self.sec1dists = []
-
-        for sec in self.allsec:
-
-            sec.push()
-            self.sec0dists.append(nrn.h.distance(0))
-            self.sec1dists.append(nrn.h.distance(1))
-            nrn.h.pop_section()
-
-    #*******************************************************************************************************************
     def __init__(self, morphFile):
 
+        self.tipPtrs = {}
+        self.allsec = {}
 
         (self.morphFilePath, self.morphFileName) = os.path.split(morphFile)
 
@@ -286,5 +288,7 @@ class MorphImport:
         self.rootPtr = self.getRootPtr()
 
         self.getTipPtrs(self.rootPtr)
+
+
 
     #*******************************************************************************************************************

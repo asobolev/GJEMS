@@ -11,5 +11,8 @@ swc2 = '/home/ajay/PowerFolders/GinJangNDB_Upload/SigenSegmentations/Results/Goo
 swcData1 = np.loadtxt(swc1)
 swcData2 = np.loadtxt(swc2)
 
-ax = plotPoints3D(swcData1[:, 2:5], 'rx')
+fig = plt.figure()
+plt.show(block=False)
+
+ax = plotPoints3D(fig, swcData1[:, 2:5], 'rx')
 addPoints3D(ax, swcData2[:, 2:5], 'bx')

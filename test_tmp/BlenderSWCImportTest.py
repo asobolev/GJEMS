@@ -11,4 +11,4 @@ assert len(sys.argv) == 5, \
 swcFName = sys.argv[4]
 
 abc = BlenderSWCImporter(swcFName, matchRootOrigin=False)
-abc.importSWC()
+abc.importWholeSWC()

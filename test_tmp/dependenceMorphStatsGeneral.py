@@ -4,18 +4,19 @@ import os
 
 SWCPath = 'swcFiles/GoodSamplesDLInt1_v2/forager'
 
-swcFNames = ['HB130313-4NS_3ptSoma.swc',
-               # 'HB130322-1NS_.swc',
-               # 'HB130408-1NS_3ptSoma.swc',
-               'HB130425-1NS_3ptSoma.swc',
-               # 'HB130501-2NS_STD.swc'
-                ]
+swcFNames = [
+    'HB130313-4NS_3ptSoma_FSTD.swc',
+    'HB130322-1NS_3ptSoma_FSTD.swc',
+    'HB130408-1NS_3ptSoma_FSTD.swc',
+    'HB130425-1NS_3ptSoma_FSTD.swc',
+    'HB130501-2NS_3ptSoma_FSTD.swc'
+]
 
 swcFiles = [os.path.join(SWCPath, x) for x in swcFNames]
 
 # swcFiles.append('swcFiles/HB060602_3ptSoma.swc')
 
-LMOutput = getMeasureDependence(['Bif_ampl_local'], ['Daughter_Ratio'], swcFiles, nBins=1000)
+LMOutput = getMeasureDependence(['Partition_asymmetry'], ['Daughter_Ratio'], swcFiles, nBins=50)
 
 
 cols = ['r', 'g', 'b', 'm', 'k', 'c']
