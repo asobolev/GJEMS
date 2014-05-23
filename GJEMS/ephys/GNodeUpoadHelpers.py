@@ -23,7 +23,6 @@ def checkIfExistsSection(GNodeSession, secName):
     :secName: string specifying the name of the section
     :Gyan: Returns True if a section with name 'secName' exists on the GNode Server to which 'GNodeSession' is connected
     """
-
     presentSecs = GNodeSession.select(gnodeclient.Model.SECTION, {"name": secName})
     if len(presentSecs):
         return True

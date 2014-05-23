@@ -73,7 +73,7 @@ class RawDataUploader():
 
     #*******************************************************************************************************************
 
-    def __init__(self, ephysFile, csvFile):
+    def __init__(self, ephysFile, csvFile, username, password, location="http://predata.g-node.org"):
 
         assert os.path.isfile(ephysFile), 'SMR file not found'
         assert os.path.isfile(csvFile), 'csv file not found'
@@ -82,8 +82,9 @@ class RawDataUploader():
         self.expName = os.path.split(ephysFile)[1].strip('.smr')
         self.blockName = self.expName + '_raw'
         self.csvFile = csvFile
-        self.GNodeSession = gnodeclient.session.create(location="http://predata.g-node.org",
-                                                       username="bob", password="pass")
+        self.session = gnodeclient.session.create(
+            location=location, username=username, password=password
+        )
         spike2Reader = Spike2IO(self.ephysFile)
         self.dataBlock = spike2Reader.read()[0]
 
@@ -91,14 +92,14 @@ class RawDataUploader():
 
     def checkExistenceOnServer(self):
 
-        return checkIfExistsSection(self.GNodeSession, self.expName)
+        return checkIfExistsSection(self.session, self.expName)
 
     #*******************************************************************************************************************
 
     def deleteExistent(self):
 
-        deleteExistentBlock(self.GNodeSession, self.blockName)
-        deleteExistentSection(self.GNodeSession, self.expName)
+        deleteExistentBlock(self.session, self.blockName)
+        deleteExistentSection(self.session, self.expName)
 
     #*******************************************************************************************************************
 
@@ -158,7 +159,11 @@ class RawDataUploader():
 
         self.dataBlockToUpload.segments.append(raw_seg)
 
+        self.doc = odml.Document(author="Ajayrama K.", version="1.0")
+
         self.mainSec = odml.Section(name=self.expName, type='experiment')
+        self.doc.append(self.mainSec)
+
         expSummary = odml.Section(name='VibrationStimulus', type='experiment/electrophysiology')
 
         if not self.csvData['freqs'] == []:
@@ -178,17 +183,17 @@ class RawDataUploader():
         self.mainSec.append(expSummary)
 
         print asctime() + ' : Uploading metadata'
-        secLoc = uploadNewSectionRecursive(self.GNodeSession, self.mainSec)
+        section = self.session.set_all(self.doc)
         print asctime() + ' : Uploading metadata Done'
 
         print asctime() + ' : Refreshing metadata'
-        mainSec = self.GNodeSession.get(secLoc, refresh=True, recursive=True)
+        mainSec = self.session.get(section.location, refresh=True, recursive=True)
         print asctime() + ' : Refreshing metadata Done'
 
         self.dataBlockToUpload.section = mainSec
 
         print asctime() + ' : Uploading Data'
-        blkLoc = uploadNewBlockRecursive(self.GNodeSession, self.dataBlockToUpload)
+        blkLoc = self.session.set_all(self.dataBlockToUpload)
         print asctime() + ' : Uploading Data Done'
 
     #*******************************************************************************************************************
