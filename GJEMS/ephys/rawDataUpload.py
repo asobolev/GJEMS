@@ -200,9 +200,6 @@ class RawDataUploader():
         mainSec = self.session.get(doc.sections[0].location, refresh=True, recursive=True)
         print asctime() + ' : Refreshing metadata Done'
 
-        import ipdb
-        ipdb.set_trace()
-
         self.dataBlockToUpload.section = mainSec
 
         print asctime() + ' : Uploading Data'
