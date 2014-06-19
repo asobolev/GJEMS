@@ -109,7 +109,7 @@ class RawDataUploader():
         entireVibrationSignal = self.dataBlock.segments[0].analogsignals[1]
 
         if len(self.dataBlock.segments[0].analogsignals) > 2:
-                entireCurrentSignal = self.dataBlock.segments[0].analogsignals[2]
+            entireCurrentSignal = self.dataBlock.segments[0].analogsignals[2]
 
 
         recordingStartTime = max(entireVibrationSignal.t_start, entireVoltageSignal.t_start)
@@ -142,6 +142,8 @@ class RawDataUploader():
         self.vibrationSignal.description = 'Vibration Stimulus applied to the honey bee antenna'
         self.voltageSignal.name = 'Membrane Potential'
         self.voltageSignal.description = 'Vibration Sensitive inter-neuron membrane potential'
+        self.vibrationSignal.segment = raw_seg
+        self.voltageSignal.segment = raw_seg
 
         raw_seg.analogsignals.append(self.vibrationSignal)
         raw_seg.analogsignals.append(self.voltageSignal)
@@ -152,11 +154,14 @@ class RawDataUploader():
             self.currentSignal.description = 'Indicates whether a current is being injected or not. The magnitudes ' \
                                              'are given in an event array'
 
+            self.currentSignal.segment = raw_seg
             raw_seg.analogsignals.append(self.currentSignal)
 
             if len(self.dataBlock.segments[0].eventarrays) == 2:
                 raw_seg.eventarrays.append(self.dataBlock.segments[0].eventarrays[1])
+                self.dataBlock.segments[0].eventarrays[1].segment = raw_seg
 
+        raw_seg.block = self.dataBlockToUpload
         self.dataBlockToUpload.segments.append(raw_seg)
 
         self.doc = odml.Document(author="Ajayrama K.", version="1.0")
@@ -166,14 +171,19 @@ class RawDataUploader():
 
         expSummary = odml.Section(name='VibrationStimulus', type='experiment/electrophysiology')
 
-        if not self.csvData['freqs'] == []:
-            expSummary.append(odml.Property(name='FrequenciesUsed', value=self.csvData['freqs']))
+        quantity_parser = lambda lst: [odml.Value(data=float(x), unit=x.dimensionality.string) for x in lst]
 
-        if not self.csvData['pulse'][0] == []:
-            expSummary.append(odml.Property(name='PulseInputDurations', value=self.csvData['pulse'][0]))
+        frequencies = quantity_parser(self.csvData['freqs'])
+        if frequencies:
+            expSummary.append(odml.Property(name='FrequenciesUsed', value=frequencies))
 
-        if not self.csvData['pulse'][1] == []:
-            expSummary.append(odml.Property(name='PulseInputIntervals', value=self.csvData['pulse'][1]))
+        durations = quantity_parser(self.csvData['pulse'][0])
+        if durations:
+            expSummary.append(odml.Property(name='PulseInputDurations', value=durations))
+
+        intervals = quantity_parser(self.csvData['pulse'][1])
+        if intervals:
+            expSummary.append(odml.Property(name='PulseInputIntervals', value=intervals))
 
         expSummary.append(odml.Property(name='SpontaneousActivityPresence', value=self.csvData['spont']))
 
@@ -183,12 +193,15 @@ class RawDataUploader():
         self.mainSec.append(expSummary)
 
         print asctime() + ' : Uploading metadata'
-        section = self.session.set_all(self.doc)
+        doc = self.session.set_all(self.doc)
         print asctime() + ' : Uploading metadata Done'
 
         print asctime() + ' : Refreshing metadata'
-        mainSec = self.session.get(section.location, refresh=True, recursive=True)
+        mainSec = self.session.get(doc.sections[0].location, refresh=True, recursive=True)
         print asctime() + ' : Refreshing metadata Done'
+
+        import ipdb
+        ipdb.set_trace()
 
         self.dataBlockToUpload.section = mainSec
 
